@@ -482,7 +482,7 @@ class RedshiftDictMapper(DataMapper):
 
         instances.gt_redshift = torch.tensor([a["redshift"] for a in annos])
         
-        instances.gt_imageid = torch.tensor([dataset_dict["image_id"] for a in annos])
+        instances.gt_objid = torch.tensor([a["obj_id"] for a in annos])
 
         instances = utils.filter_empty_instances(instances)
         

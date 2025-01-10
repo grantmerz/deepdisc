@@ -188,6 +188,7 @@ class LossEvalHook(HookBase):
         start_time = time.perf_counter()
         total_compute_time = 0
         losses = []
+        losses_dicts =[]
         with torch.no_grad():
             for idx, inputs in enumerate(self._data_loader):
                 if idx == num_warmup:
@@ -209,13 +210,26 @@ class LossEvalHook(HookBase):
                         ),
                         n=5,
                     )
-                loss_batch = self._get_loss(inputs)
+                loss_batch, metrics_dict = self._get_loss(inputs)
             losses.append(loss_batch)
+            losses_dicts.append(metrics_dict)
         mean_loss = np.mean(losses)
+        averaged_losses_dict ={}
+        for d in losses_dicts:
+            for key, value in d.items():
+                if key not in averaged_losses_dict:
+                    averaged_losses_dict[key] = [0, 0]  # [sum, count]
+                averaged_losses_dict[key][0] += value
+                averaged_losses_dict[key][1] += 1
+        averaged_losses_dict = {key: total / count for key, (total, count) in averaged_losses_dict.items()}
         # print('validation_loss', mean_loss)
         self.trainer.storage.put_scalar("validation_loss", mean_loss)
         self.trainer.add_val_loss(mean_loss)
         self.trainer.valloss = mean_loss
+        
+        self.trainer.add_val_loss_dict(averaged_losses_dict)
+        self.trainer.vallossdict = averaged_losses_dict
+
         comm.synchronize()
         return losses
 
@@ -227,7 +241,7 @@ class LossEvalHook(HookBase):
             for k, v in metrics_dict.items()
         }
         total_losses_reduced = sum(loss for loss in metrics_dict.values())
-        return total_losses_reduced
+        return total_losses_reduced, metrics_dict
 
     def after_step(self):
         next_iter = self.trainer.iter + 1

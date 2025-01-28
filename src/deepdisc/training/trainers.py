@@ -47,6 +47,7 @@ class LazyAstroTrainer(SimpleTrainer):
     # see https://detectron2.readthedocs.io/en/latest/_modules/detectron2/engine/train_loop.html#SimpleTrainer
     def run_step(self):
         self.iterCount = self.iterCount + 1
+        #print(self.iter,self.iterCount)
         assert self.model.training, "[SimpleTrainer] model was changed to eval mode!"
         start = time.perf_counter()
         data = next(self._data_loader_iter)
@@ -62,7 +63,7 @@ class LazyAstroTrainer(SimpleTrainer):
              for k, v in loss_dict.items()
         }
 
-        self.lossdict_epochs[str(self.iterCount)] = ld
+        self.lossdict_epochs[str(self.iter+1)] = ld
 
         # print('Loss dict',loss_dict)
         if isinstance(loss_dict, torch.Tensor):
@@ -122,7 +123,7 @@ class LazyAstroTrainer(SimpleTrainer):
         Overwrite it if you'd like a different scheduler.
         """
 
-        self.vallossdict_epochs[str(self.iterCount)] = val_loss_dict
+        self.vallossdict_epochs[str(self.iter+1)] = val_loss_dict
 
 
 class LazyAstroEvaluator(SimpleTrainer):

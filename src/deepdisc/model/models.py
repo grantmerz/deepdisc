@@ -19,12 +19,12 @@ from torch.distributions.independent import Independent
 from torch.distributions.mixture_same_family import MixtureSameFamily
 from torch.distributions.normal import Normal
 from torch.nn import functional as F
-'''
+
 import dustmaps
 from dustmaps.sfd import SFDQuery
 from dustmaps.config import config
 config['data_dir'] = '/home/shared/hsc/DC2/dustmaps/'
-'''
+
 from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 

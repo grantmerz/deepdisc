@@ -19,12 +19,12 @@ from torch.distributions.independent import Independent
 from torch.distributions.mixture_same_family import MixtureSameFamily
 from torch.distributions.normal import Normal
 from torch.nn import functional as F
-
+'''
 import dustmaps
 from dustmaps.sfd import SFDQuery
 from dustmaps.config import config
 config['data_dir'] = '/home/shared/hsc/DC2/dustmaps/'
-
+'''
 from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 
@@ -1136,8 +1136,9 @@ class RedshiftPDFCasROIHeadsGoldEBV(CascadeROIHeads):
         
         
         
-class RedshiftPDFCasROIHeadsGold(CascadeROIHeads):
-    """CascadeROIHead with added redshift pdf capability.  Follows the detectron2 CascadeROIHead class init, except for
+class RedshiftPDFCasROIHeadsGoldGals(CascadeROIHeads):
+    """CascadeROIHead with added redshift pdf capability.  Uses the image wcs and dustmaps to calculate ebv values for each box center 
+        Follows the detectron2 CascadeROIHead class init, except for
 
     Parameters
     ----------
@@ -1203,9 +1204,9 @@ class RedshiftPDFCasROIHeadsGold(CascadeROIHeads):
             #nn.Softplus()
         )
         '''
+        
+        #self.sfd = SFDQuery()
 
-        
-        
     def output_pdf(self, inputs):
         pdf = Independent(
             MixtureSameFamily(
@@ -1220,7 +1221,7 @@ class RedshiftPDFCasROIHeadsGold(CascadeROIHeads):
         )
         return pdf
 
-    def _forward_redshift(self, features, instances, targets=None):
+    def _forward_redshift(self, features, instances, targets=None, image_wcs=None):
         
         if self.training:
             #Add all gt bounding boxes for redshift regression
@@ -1231,7 +1232,7 @@ class RedshiftPDFCasROIHeadsGold(CascadeROIHeads):
 
             instances = []
             for x in finstances:
-                gold_inst = x[x.gt_magi < self.maglim]
+                gold_inst = x[(x.gt_magi < self.maglim) & (x.gt_redshift!=0)]
                 instances.append(gold_inst)
             if len(instances)==0:
                 return 0
@@ -1250,8 +1251,20 @@ class RedshiftPDFCasROIHeadsGold(CascadeROIHeads):
         features = nn.Flatten()(features)
         
         num_instances_per_img = [len(i) for i in instances]
-
+        inds = np.cumsum(num_instances_per_img)
+        '''
+        #Add EBV
+        centers = cat([box.get_centers().cpu() for box in boxes]) # Center box coords for wcs             
+        #calculates coords for box centers in each image. Need to split and cumsum to make sure the box centers get the right wcs  
+        coords = [WCS(wcs).pixel_to_world(np.split(centers,inds)[i][:,0],np.split(centers,inds)[i][:,1]) for i, wcs in enumerate(image_wcs)] 
+        #use dustamps to get all ebv with the associated coords
+        ebvvec = [torch.tensor(self.sfd(coordsi)).to(features.device) for coordsi in coords]
+        ebvs = cat(ebvvec)
+        #gather into a tensor and add as a feature for the input to the fully connected network
+        features = torch.cat((features, ebvs.unsqueeze(1)), dim=-1)
+        '''
         if self.training:
+            
             fcs = self.redshift_fc(features)
             pdfs = self.output_pdf(fcs)
 
@@ -1265,14 +1278,13 @@ class RedshiftPDFCasROIHeadsGold(CascadeROIHeads):
             # print(len(instances[0]))
             if len(instances[0]) == 0:
                 return instances
-                
+            
             fcs = self.redshift_fc(features)
             pdfs = self.output_pdf(fcs)
             zs = torch.tensor(np.linspace(0, 3, 300)).to(fcs.device)
             nin = torch.as_tensor(np.array([num_instances_per_img]))
             #probs = torch.zeros((num_instances_per_img[0], 200)).to(fcs.device)
 
-            inds = np.cumsum(num_instances_per_img)
 
             probs = torch.zeros((torch.sum(nin), 300)).to(fcs.device)
             for j, z in enumerate(zs):
@@ -1284,7 +1296,7 @@ class RedshiftPDFCasROIHeadsGold(CascadeROIHeads):
 
             return instances
 
-    def forward(self, images, features, proposals, targets=None):
+    def forward(self, images, features, proposals, targets=None, image_wcs=None):
         del images
         if self.training:
             proposals = self.label_and_sample_proposals(proposals, targets)
@@ -1293,17 +1305,15 @@ class RedshiftPDFCasROIHeadsGold(CascadeROIHeads):
             # Need targets to box head
             losses = self._forward_box(features, proposals, targets)
             losses.update(self._forward_mask(features, proposals))
-            losses.update(self._forward_redshift(features, proposals, targets))
+            losses.update(self._forward_redshift(features, proposals, targets, image_wcs))
             #losses.update(self._forward_redshift(features, proposals))
             losses.update(self._forward_keypoint(features, proposals))
             return proposals, losses
         else:
             pred_instances = self._forward_box(features, proposals)
             pred_instances = self.forward_with_given_boxes(features, pred_instances)
-            pred_instances = self._forward_redshift(features, pred_instances)
+            pred_instances = self._forward_redshift(features, pred_instances, image_wcs=image_wcs)
             return pred_instances, {}
-
-
         
 
         

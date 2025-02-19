@@ -788,6 +788,7 @@ class RedshiftPDFCasROIHeadsGoldEBVGals(CascadeROIHeads):
         num_components: int,
         zloss_factor: float,
         maglim: float,
+        output_features: bool,
         *,
         box_in_features: List[str],
         box_pooler: ROIPooler,
@@ -819,6 +820,7 @@ class RedshiftPDFCasROIHeadsGoldEBVGals(CascadeROIHeads):
         self.num_components = num_components
         self.zloss_factor = zloss_factor
         self.maglim = maglim
+        self.output_features = output_features
         
         self.redshift_fc = nn.Sequential(
             nn.Linear(np.prod(self._output_size)+1, 1024),
@@ -828,18 +830,6 @@ class RedshiftPDFCasROIHeadsGoldEBVGals(CascadeROIHeads):
             nn.Linear(64, self.num_components * 3),
             #nn.Softplus()
         )
-        
-
-        '''
-        self.redshift_fc = nn.Sequential(
-            nn.Linear(np.prod(self._output_size), 64),
-            nn.Tanh(),
-            nn.Linear(64, 16),
-            nn.Tanh(),
-            nn.Linear(16, self.num_components * 3),
-            #nn.Softplus()
-        )
-        '''
         
         self.sfd = SFDQuery()
 
@@ -928,7 +918,9 @@ class RedshiftPDFCasROIHeadsGoldEBVGals(CascadeROIHeads):
 
             for i, pred_instances in enumerate(instances):
                 pred_instances.pred_redshift_pdf = np.split(probs,inds)[i]
-                pred_instances.pred_gmm =  np.split(fcs,inds)[i]
+                pred_instances.pred_gmm =  np.split(fcs,inds)[i]                
+                if self.output_features:
+                    pred_instances.features = np.split(features,inds)[i]
 
             return instances
 
@@ -970,6 +962,7 @@ class RedshiftPDFCasROIHeadsGoldEBV(CascadeROIHeads):
         num_components: int,
         zloss_factor: float,
         maglim: float,
+        output_features: bool,
         *,
         box_in_features: List[str],
         box_pooler: ROIPooler,
@@ -1001,6 +994,7 @@ class RedshiftPDFCasROIHeadsGoldEBV(CascadeROIHeads):
         self.num_components = num_components
         self.zloss_factor = zloss_factor
         self.maglim = maglim
+        self.output_features = output_features
         
         self.redshift_fc = nn.Sequential(
             nn.Linear(np.prod(self._output_size)+1, 1024),
@@ -1011,17 +1005,6 @@ class RedshiftPDFCasROIHeadsGoldEBV(CascadeROIHeads):
             #nn.Softplus()
         )
         
-
-        '''
-        self.redshift_fc = nn.Sequential(
-            nn.Linear(np.prod(self._output_size), 64),
-            nn.Tanh(),
-            nn.Linear(64, 16),
-            nn.Tanh(),
-            nn.Linear(16, self.num_components * 3),
-            #nn.Softplus()
-        )
-        '''
         
         self.sfd = SFDQuery()
 
@@ -1055,11 +1038,6 @@ class RedshiftPDFCasROIHeadsGoldEBV(CascadeROIHeads):
             if len(instances)==0:
                 return 0
             
-        #print('instances ', len(instances[0]))
-        #sz = np.load('/home/g4merz/rail_deepdisc/sampled_zs_gold.npy')
-        #sampled_zs = instances[0].gt_redshift.detach().cpu().numpy()
-        #szs = np.concatenate([sz,sampled_zs])
-        #np.save('/home/g4merz/rail_deepdisc/sampled_zs_gold.npy', szs)
                 
         if self.redshift_pooler is not None:
             features = [features[f] for f in self.box_in_features]
@@ -1092,8 +1070,6 @@ class RedshiftPDFCasROIHeadsGoldEBV(CascadeROIHeads):
             return {"redshift_loss": torch.mean(nlls)}
 
         else:
-            # print(len(instances))
-            # print(len(instances[0]))
             if len(instances[0]) == 0:
                 return instances
             
@@ -1101,7 +1077,6 @@ class RedshiftPDFCasROIHeadsGoldEBV(CascadeROIHeads):
             pdfs = self.output_pdf(fcs)
             zs = torch.tensor(np.linspace(0, 3, 300)).to(fcs.device)
             nin = torch.as_tensor(np.array([num_instances_per_img]))
-            #probs = torch.zeros((num_instances_per_img[0], 200)).to(fcs.device)
 
 
             probs = torch.zeros((torch.sum(nin), 300)).to(fcs.device)
@@ -1111,6 +1086,8 @@ class RedshiftPDFCasROIHeadsGoldEBV(CascadeROIHeads):
             for i, pred_instances in enumerate(instances):
                 pred_instances.pred_redshift_pdf = np.split(probs,inds)[i]
                 pred_instances.pred_gmm =  np.split(fcs,inds)[i]
+                if self.output_features:
+                    pred_instances.features = np.split(features,inds)[i]
 
             return instances
 
@@ -1152,6 +1129,7 @@ class RedshiftPDFCasROIHeadsGoldGals(CascadeROIHeads):
         num_components: int,
         zloss_factor: float,
         maglim: float,
+        output_features: bool,
         *,
         box_in_features: List[str],
         box_pooler: ROIPooler,
@@ -1183,7 +1161,8 @@ class RedshiftPDFCasROIHeadsGoldGals(CascadeROIHeads):
         self.num_components = num_components
         self.zloss_factor = zloss_factor
         self.maglim = maglim
-        
+        self.output_features = output_features
+
         self.redshift_fc = nn.Sequential(
             nn.Linear(np.prod(self._output_size), 1024),
             nn.Tanh(),
@@ -1193,19 +1172,8 @@ class RedshiftPDFCasROIHeadsGoldGals(CascadeROIHeads):
             #nn.Softplus()
         )
         
+        self.sfd = SFDQuery()
 
-        '''
-        self.redshift_fc = nn.Sequential(
-            nn.Linear(np.prod(self._output_size), 64),
-            nn.Tanh(),
-            nn.Linear(64, 16),
-            nn.Tanh(),
-            nn.Linear(16, self.num_components * 3),
-            #nn.Softplus()
-        )
-        '''
-        
-        #self.sfd = SFDQuery()
 
     def output_pdf(self, inputs):
         pdf = Independent(
@@ -1236,12 +1204,7 @@ class RedshiftPDFCasROIHeadsGoldGals(CascadeROIHeads):
                 instances.append(gold_inst)
             if len(instances)==0:
                 return 0
-            
-        #print('instances ', len(instances[0]))
-        #sz = np.load('/home/g4merz/rail_deepdisc/sampled_zs_gold.npy')
-        #sampled_zs = instances[0].gt_redshift.detach().cpu().numpy()
-        #szs = np.concatenate([sz,sampled_zs])
-        #np.save('/home/g4merz/rail_deepdisc/sampled_zs_gold.npy', szs)
+
                 
         if self.redshift_pooler is not None:
             features = [features[f] for f in self.box_in_features]
@@ -1252,7 +1215,7 @@ class RedshiftPDFCasROIHeadsGoldGals(CascadeROIHeads):
         
         num_instances_per_img = [len(i) for i in instances]
         inds = np.cumsum(num_instances_per_img)
-        '''
+        
         #Add EBV
         centers = cat([box.get_centers().cpu() for box in boxes]) # Center box coords for wcs             
         #calculates coords for box centers in each image. Need to split and cumsum to make sure the box centers get the right wcs  
@@ -1262,7 +1225,7 @@ class RedshiftPDFCasROIHeadsGoldGals(CascadeROIHeads):
         ebvs = cat(ebvvec)
         #gather into a tensor and add as a feature for the input to the fully connected network
         features = torch.cat((features, ebvs.unsqueeze(1)), dim=-1)
-        '''
+        
         if self.training:
             
             fcs = self.redshift_fc(features)
@@ -1274,8 +1237,6 @@ class RedshiftPDFCasROIHeadsGoldGals(CascadeROIHeads):
             return {"redshift_loss": torch.mean(nlls)}
 
         else:
-            # print(len(instances))
-            # print(len(instances[0]))
             if len(instances[0]) == 0:
                 return instances
             
@@ -1293,6 +1254,9 @@ class RedshiftPDFCasROIHeadsGoldGals(CascadeROIHeads):
             for i, pred_instances in enumerate(instances):
                 pred_instances.pred_redshift_pdf = np.split(probs,inds)[i]
                 pred_instances.pred_gmm =  np.split(fcs,inds)[i]
+                if self.output_features:
+                    pred_instances.features =  np.split(features,inds)[i]
+
 
             return instances
 

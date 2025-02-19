@@ -380,3 +380,53 @@ def run_batched_get_object_coords(dataloader, predictor, oclass=True, gmm=False)
     
     else:
         return zpreds, all_ras, all_decs, oclasses, scores
+    
+
+import time
+def run_batched_get_object_coords_features(dataloader, predictor, oclass=True, gmm=False):
+    """
+    Test function not yet implemented for batch prediction
+
+    """
+    zpreds = []
+    all_decs = []
+    all_ras = []
+    scores = []
+    features = []
+    
+    if gmm:
+        gmms =[]
+    if oclass:
+        oclasses=[]
+
+    with torch.no_grad():
+        for i, dataset_dicts in enumerate(dataloader):
+            batched_outputs = predictor.model(dataset_dicts)
+            for outputs,d in zip(batched_outputs, dataset_dicts):
+                ras,decs = get_object_coords(d, outputs)
+                #all_ras.append(*ras)
+                #all_decs.append(*decs)
+                list(map(all_ras.append, ras))
+                list(map(all_decs.append, decs))
+
+                #print(outputs['instances'].features)
+                f = outputs['instances'].features.cpu().numpy()
+                
+
+                for dti in range(len(outputs['instances'])):
+                    #ztrue = d["annotations"][int(gti)]["redshift"]
+                    pdf = np.exp(outputs["instances"].pred_redshift_pdf[int(dti)].cpu().numpy())
+                    zpreds.append(pdf)
+                    
+                    gmms.append(outputs['instances'].pred_gmm.cpu()[int(dti)].cpu().numpy())
+                    oclasses.append(outputs['instances'].pred_classes.cpu()[int(dti)].numpy())
+                    scores.append(outputs['instances'].scores.cpu()[int(dti)].numpy())
+                    features.append(f[int(dti)])
+
+                    
+    if gmm:
+        return zpreds, all_ras, all_decs, oclasses, gmms, scores, features
+    
+    else:
+        return zpreds, all_ras, all_decs, oclasses, scores
+

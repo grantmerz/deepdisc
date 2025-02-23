@@ -6,7 +6,6 @@ Using deep learning for Detection, Instance Segmentation, and Classification on 
 *Corresponding Author:* 
 [Grant Merz](gmerz3@illinois.edu), University of Illinois at Urbana-Champaign
 
-*Contributors (in alphabetical order):* Patrick D. Aleo, Colin J. Burke, Yichen Liu, Xin Liu, Grant Merz, Anshul Shah, .
 
 This is an updated repo of the original implementation (https://github.com/burke86/astro_rcnn)
 
@@ -26,11 +25,6 @@ or create an environment from scratch and install by hand the packages listed in
    You can also install by cloning this repo and running `pip install [e].`  [e] is optional and will install in editable mode.  Use if you are going to change the source code  
 
 Usage:
-```
-demo_decam.ipynb
-```
-This notebook demonstrates how to set up, train and evaluate a model using the detectron2 API. It requires the user to have downloaded the PhoSim simulated DECam data used in [Burke et al. 2019, MNRAS, 490 3952.](http://adsabs.harvard.edu/doi/10.1093/mnras/stz2845).   The data can be found here: [training set (1,000 images)](https://uofi.box.com/s/svlkblkh5o4a3q3qwu7iks6r21cmmu64) [validation set (250 images)](https://uofi.box.com/s/m22q747nawtxq8e5iihjulpapwlvucr5) [test set (50 images)](https://uofi.box.com/s/bmtkjrj9g832w9qybjd1yc4l6cyqx6cs).
-
 ```
 demo_hsc.ipynb
 ```

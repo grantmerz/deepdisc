@@ -41,6 +41,8 @@ model.proposal_generator.post_nms_topk=[6000,1000]
 model.roi_heads.box_predictor.test_topk_per_image = 500
 model.roi_heads.box_predictor.test_score_thresh = 0.3
 model.roi_heads.box_predictor.test_nms_thresh = 0.5
+
+model.backbone.square_pad = 64
    
 
 train.init_checkpoint = "detectron2://ImageNetPretrained/MSRA/R-50.pkl" 

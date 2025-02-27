@@ -56,7 +56,7 @@ class ImageReader(abc.ABC):
         im : numpy array
             The image.
         """
-        if isinstance(image, str):
+        if isinstance(image, str) or all(isinstance(s, str) for s in image):
             im = self._read_image(image)
         elif isinstance(image, np.ndarray):
             im = np.transpose(image, axes=(1, 2, 0)).astype(np.float32)

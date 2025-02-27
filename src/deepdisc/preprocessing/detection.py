@@ -217,7 +217,7 @@ def run_scarlet(
         multichannel array of data, shape (Nfilters x N x N)
     filters: list
         str list of filters, e.g. ('u','g','r)
-    source_catalog: pandas df
+    catalog: pandas df
         external source catalog used to initialize source positions and get additional source information
     stretch: float
         plotting parameter
@@ -333,9 +333,7 @@ def run_scarlet(
     # add another component until larger sources are modeled well
     print("Initializing starlet sources to be fit.")
 
-    # Compute radii and spread of sources
     t0 = time.time()
-    # Loop through detections in catalog
 
     starlet_sources, skipped = scarlet.initialization.init_all_sources(
         model_frame,
@@ -348,22 +346,27 @@ def run_scarlet(
         set_spectra=False,
     )
 
-    """
-    for k, src in enumerate(catalog):
-
-        # Is the source compact relative to the PSF?
-        if spread[k] < 1:
-            compact = True
-        else:
-            compact = False
-
-        # Try modeling each source as a single ExtendedSource first
-        new_source = scarlet.ExtendedSource(model_frame, (src['y'], src['x']), observation,
-                                            K=1, thresh=morph_thresh, compact=compact)
-
+    if len(starlet_sources)==0:
         
-        starlet_sources.append(new_source)
-    """
+        print("Modeling as extended sources")
+        for k, src in enumerate(catalog):
+
+            # Is the source compact relative to the PSF?
+            if spread[k] < 1:
+                compact = True
+            else:
+                compact = False
+
+            # Try modeling each source as a single ExtendedSource first
+            new_source = scarlet.ExtendedSource(model_frame, (src['y'], src['x']), observation,
+                                                K=1, thresh=morph_thresh, compact=compact)
+
+
+            starlet_sources.append(new_source)
+    
+    
+    print(starlet_sources)
+    
     # Fit scarlet blend
     starlet_blend, logL = fit_scarlet_blend(
         starlet_sources,

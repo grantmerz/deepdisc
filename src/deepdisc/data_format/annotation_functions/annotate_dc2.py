@@ -38,13 +38,8 @@ def annotate_dc2(images, mask, idx, filters):
 
     bn = os.path.basename(images[FILT_INX])
     tract = int(bn.split("_")[1])
-    #patch = (
-    #    int(bn.split("_")[2].split("_")[2][0]),
-    #    int(bn.split("_")[2].split("_")[2][-1]),
-    #)
     patch = bn.split('_')[2]
     sp = int(bn.split("_")[3])
-    #record[f"filename"] = f"/home/g4merz/DC2/nersc_data/data/{tract}_{patch[0]},{patch[1]}_{sp}_images.npy"
     record[f"filename"] = f"/home/shared/hsc/DC2/processed_data/train/{tract}_{patch}_{sp}_images.npy"
     record["image_id"] = idx
     record["height"] = height

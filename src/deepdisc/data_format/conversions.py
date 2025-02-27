@@ -30,12 +30,10 @@ def fitsim_to_numpy(img_files, outdir):
                 full_im.append(data)
 
         full_im = np.array(full_im)
-        bn = os.path.basename(img)
-        tract = int(bn.split("_")[1])
-        patch = (int(bn.split("_")[2].split("_")[0][0]), int(bn.split("_")[2].split("_")[0][-1]))
-        sp = int(bn.split("_")[3])
+        
+        
+        np.save(os.path.join(outdir, img.split('_')[-3]+".npy"), full_im)
 
-        np.save(os.path.join(outdir, f"{tract}_{patch[0]},{patch[1]}_{sp}_images.npy"), full_im)
 
     return
 

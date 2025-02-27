@@ -34,8 +34,6 @@ numclasses = len(metadata.classes)
 dataloader.train.total_batch_size = bs
 
 model.proposal_generator.anchor_generator.sizes = [[8], [16], [32], [64], [128]]
-model.roi_heads.num_classes = numclasses
-model.roi_heads.batch_size_per_image = 512
 
 model.roi_heads.num_classes = numclasses
 model.roi_heads.batch_size_per_image = 512

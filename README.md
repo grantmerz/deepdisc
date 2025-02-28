@@ -26,8 +26,15 @@ or create an environment from scratch and install by hand the packages listed in
 
 Usage:
 ```
-demo_hsc.ipynb
+demo_btk.ipynb
 ```
-This notebook follows a very similar procedure to ```demo_decam.ipynb```, but for real HSC data.  The ground truth object locations and masks are constructed following ```training_data.ipynb``` and classes are constructed with external catalog matching following ```hsc_class_assign.ipynb``` It is largely for demo purposes, so will not reflect the results of the paper.  The training scripts we used to recreate the paper results are in ```train_decam.py``` and ```train_hsc_primary.py```  
+This notebook uses simulated images generated using the Blending Toolkit (Mendoza et al 2025).  We used the CatSim (Connolly et al 2014) example catalog provided within the BTK to generate a set of training/test images, and then constructed per-image metadata the network needs to train. The notebook is largely for demo purposes, so does not include full training scheduling and optimizations.
 
 
+The BTK simulated data can be downloaded [here](https://uofi.box.com/s/gqnlza5ldogumqbrqlbaloh3xtpjxzwo)
+
+
+Mendoza, Ismael, Andrii Torchylo, Thomas Sainrat, Axel Guinot, Alexandre Boucaud, Maxime Paillasa, Camille Avestruz, et al. 2025. “The Blending ToolKit: A Simulation Framework for Evaluation of Galaxy Detection and Deblending.” The Open Journal of Astrophysics 8 (February). https:/​/​doi.org/​10.33232/​001c.129699.
+
+A.J. Connolly et al., An end-to-end simulation framework for the Large Synoptic Survey
+Telescope, in Proc. SPIE 9150 (2014) 14.

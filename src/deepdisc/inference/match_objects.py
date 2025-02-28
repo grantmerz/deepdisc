@@ -8,13 +8,15 @@ import deepdisc.astrodet.astrodet as toolkit
 from deepdisc.inference.predictors import get_predictions, get_predictions_new
 
 
-def get_matched_object_inds(dataset_dict, outputs):
+def get_matched_object_inds(dataset_dict, outputs, IOUthresh = 0.5):
     """Returns indices for matched pairs of ground truth and detected objects in an image
 
     Parameters
     ----------
     dataset_dict : dictionary
         The dictionary metadata for a single image
+    IOUthresh : float
+        The IOU threshold used to match detections and ground truth
 
     Returns
     -------
@@ -25,8 +27,7 @@ def get_matched_object_inds(dataset_dict, outputs):
         outputs: list(Intances)
             The list of detected object Instances
     """
-
-    IOUthresh = 0.5
+    
 
     gt_boxes = np.array([a["bbox"] for a in dataset_dict["annotations"]])
     # Convert to the mode model expects
@@ -73,18 +74,9 @@ def get_object_coords(dataset_dict, outputs):
     pred_boxes = outputs["instances"].pred_boxes
     pred_boxes = pred_boxes.to("cpu")
     
-    xs = []
-    ys = []
+    centers = outputs['instances'].pred_boxes.get_centers().cpu().numpy()
+    coords = wcs.pixel_to_world(centers[:,0],centers[:,1])
     
-    for box in pred_boxes:
-        w = box[2]-box[0]
-        h = box[3]-box[1]
-        x = box[0]+w//2
-        y = box[1]+h//2
-        xs.append(x)
-        ys.append(y)
-    
-    coords = wcs.pixel_to_world(xs,ys)
     ras = coords.ra.degree
     decs = coords.dec.degree
     return ras, decs
@@ -347,7 +339,7 @@ def run_batched_match_redshift(dataloader, predictor, ids=False, blendedness=Fal
 
 
 
-def run_batched_get_object_coords(dataloader, predictor):
+def run_batched_get_object_coords(dataloader, predictor, oclass=True, gmm=False):
     """
     Test function not yet implemented for batch prediction
 
@@ -355,6 +347,12 @@ def run_batched_get_object_coords(dataloader, predictor):
     zpreds = []
     all_decs = []
     all_ras = []
+    scores = []
+    
+    if gmm:
+        gmms =[]
+    if oclass:
+        oclasses=[]
 
     with torch.no_grad():
         for i, dataset_dicts in enumerate(dataloader):
@@ -366,12 +364,19 @@ def run_batched_get_object_coords(dataloader, predictor):
                 list(map(all_ras.append, ras))
                 list(map(all_decs.append, decs))
 
-                #pdfs = np.exp(outputs["instances"].pred_redshift_pdf.cpu().numpy())
-                #zpreds.append(pdfs)
+               
                 for dti in range(len(outputs['instances'])):
                     #ztrue = d["annotations"][int(gti)]["redshift"]
                     pdf = np.exp(outputs["instances"].pred_redshift_pdf[int(dti)].cpu().numpy())
                     zpreds.append(pdf)
                     
-    #print(zpreds)
-    return zpreds, all_ras, all_decs
+                    gmms.append(outputs['instances'].pred_gmm.cpu()[int(dti)].cpu().numpy())
+                    oclasses.append(outputs['instances'].pred_classes.cpu()[int(dti)].numpy())
+                    scores.append(outputs['instances'].scores.cpu()[int(dti)].numpy())
+
+                    
+    if gmm:
+        return zpreds, all_ras, all_decs, oclasses, gmms, scores
+    
+    else:
+        return zpreds, all_ras, all_decs, oclasses, scores

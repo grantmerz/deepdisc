@@ -220,7 +220,8 @@ class GeneralizedRCNNWCS(nn.Module):
         else:
             detected_instances = [x.to(self.device) for x in detected_instances]
             results = self.roi_heads.forward_with_given_boxes(features, detected_instances)
-
+            results = self.roi_heads._forward_redshift(features, results, image_wcs=image_wcs)
+    
         if do_postprocess:
             assert not torch.jit.is_scripting(), "Scripting is not supported for postprocess."
             return self._postprocess(results, batched_inputs, images.image_sizes)

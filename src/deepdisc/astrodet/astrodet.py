@@ -1025,37 +1025,63 @@ class COCOEvaluatorRecall(COCOEvaluator):
         # Compute per-category AP
         # from https://github.com/facebookresearch/Detectron/blob/a6a835f5b8208c45d0dce217ce9bbda915f44df7/detectron/datasets/json_dataset_evaluator.py#L222-L252 # noqa
         precisions = coco_eval.eval["precision"]
+#         print(recalls)
         # precision has dims (iou, recall, cls, area range, max dets)
         assert len(class_names) == precisions.shape[2]
+        # recall has dims (iou, cls, area range, max dets)
+        recalls = coco_eval.eval["recall"]
 
         results_per_category = []
         precision_per_category = []
+        recall_per_category = []
         for idx, name in enumerate(class_names):
             # area range index 0: all area ranges
             # max dets index -1: typically 100 per image
             precision = precisions[:, :, idx, 0, -1]
             precision = precision[precision > -1]
+            
+            recall = recalls[:, idx, 0, -1]
+            recall = recall[recall > -1]
+            
             precision_per_category.append(precisions)
+            recall_per_category.append(recalls)
+            
             ap = np.mean(precision) if precision.size else float("nan")
-            results_per_category.append(("{}".format(name), float(ap * 100)))
-
+            ar = np.mean(recall) if recall.size else float("nan")
+        
+            results_per_category.append(("{}".format(name), float(ap * 100), float(ar * 100)))
+        
+        # overall AP @ IoU=0.50:0.95 | area=all | maxDets=100
+        overall_ap = coco_eval.stats[0]
+        
+        # overall AR @ IoU=0.50:0.95 | area=all | maxDets=100
+        overall_ar = coco_eval.stats[8]
+        
+#         ap_med50 = coco_eval.stats[4]
+#         ar_med50 = coco_eval.stats[10]
         # tabulate it
-        N_COLS = min(6, len(results_per_category) * 2)
+        N_COLS = min(6, len(results_per_category) * 3)
         results_flatten = list(itertools.chain(*results_per_category))
         results_2d = itertools.zip_longest(*[results_flatten[i::N_COLS] for i in range(N_COLS)])
         table = tabulate(
             results_2d,
             tablefmt="pipe",
             floatfmt=".3f",
-            headers=["category", "AP"] * (N_COLS // 2),
+            headers=["category", "AP", "AR"] * (N_COLS // 3),
             numalign="left",
         )
-        self._logger.info("Per-category {} AP: \n".format(iou_type) + table)
+#         self._logger.info("Per-category {} AP: \n".format(iou_type) + table)
+        self._logger.info("Per-category {} AP and AR: \n".format(iou_type) + table)
 
         # Save the precision-recall per category
         results["results_per_category"] = precision_per_category
+        results["recall_per_category"] = recall_per_category
+        results['overall_AP'] = overall_ap * 100
+        results['overall_AR'] = overall_ar * 100
 
-        results.update({"AP-" + name: ap for name, ap in results_per_category})
+        results.update({"AP-" + name: ap for name, ap, _ in results_per_category})
+        results.update({f"AR-{name}": ar for name, _, ar in results_per_category})
+
         return results
 
 

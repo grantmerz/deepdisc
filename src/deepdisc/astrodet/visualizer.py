@@ -352,7 +352,7 @@ class Visualizer:
 
     # TODO implement a fast, rasterized version using OpenCV
 
-    def __init__(self, img_rgb, metadata=None, scale=1.0, instance_mode=ColorMode.IMAGE):
+    def __init__(self, img_rgb, metadata=None, scale=1.0, instance_mode=ColorMode.IMAGE, enable_color_jitter=True):
         """
         Args:
             img_rgb: a numpy array of shape (H, W, C), where H and W correspond to
@@ -375,6 +375,9 @@ class Visualizer:
         self._default_font_size = max(np.sqrt(self.output.height * self.output.width) // 90, 10 // scale)
         self._instance_mode = instance_mode
         self.keypoint_threshold = _KEYPOINT_THRESHOLD
+        # Users can choose between segmentation-optimized colors (False) or instance distinction (True)
+        # default will be True as it preserves original behavior
+        self.enable_color_jitter = enable_color_jitter
 
     def draw_instance_predictions(self, predictions, alpha=0.5, lf=True, ls="-", boxf=False):
         """
@@ -1170,6 +1173,8 @@ class Visualizer:
             jittered_color (tuple[double]): a tuple of 3 elements, containing the RGB values of the
                 color after being jittered. The values in the list are in the [0.0, 1.0] range.
         """
+        if not self.enable_color_jitter:
+            return color  # return original color w/o modification
         color = mplc.to_rgb(color)
         vec = np.random.rand(3)
         # better to do it in another color space

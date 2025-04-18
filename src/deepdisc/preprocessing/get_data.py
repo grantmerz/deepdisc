@@ -161,14 +161,14 @@ def get_cutout(dirpath,tract,patch,sp,nblocks=4,filters=['u','g','r','i','z','y'
 
     #dat,cutout = get_DC2_data(dirpath,filters=filters,tract=tract,patch=patch,coord=None,cutout_size=None)
     dat,cutout,psf = get_DC2_data_alltracts(dirpath,filters=filters,tract=tract,patch=patch,coord=None,cutout_size=None, get_psf=get_psf)
-
     
+#     print(dat.shape)
     block_size = [dat.shape[1]//nblocks, dat.shape[2]//nblocks]
 
     
     sub_shape =[dat.shape[1]//nblocks,dat.shape[2]//nblocks]
     centers = get_centers(sub_shape[::-1],nblocks)
-
+#     print(len(centers))
     coord=centers[sp]
 
     #datsm,cutout = get_DC2_data(dirpath,tract=tract,patch=patch,coord=coord,cutout_size=sub_shape)

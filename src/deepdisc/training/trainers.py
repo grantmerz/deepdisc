@@ -11,10 +11,11 @@ from detectron2.utils import comm
 
 from deepdisc.astrodet import detectron as detectron_addons
 
+
 class LazyAstroTrainer(SimpleTrainer):
     def __init__(self, model, data_loader, optimizer, cfg):
         super().__init__(model, data_loader, optimizer)
-
+        self.attention_vis_period = 100  # Visualize attention maps every 100 iterations
         # Borrowed from DefaultTrainer constructor
         # see https://detectron2.readthedocs.io/en/latest/_modules/detectron2/engine/defaults.html#DefaultTrainer
         self.checkpointer = checkpointer.DetectionCheckpointer(
@@ -39,7 +40,25 @@ class LazyAstroTrainer(SimpleTrainer):
     # Note: print out loss over p iterations
     def set_period(self, p):
         self.period = p
-
+    
+#     def find_attention_layers(self, model):
+#         attention_layers = []
+#         for name, module in model.named_modules():
+#             if 'attn' in name and hasattr(module, 'qkv'):
+#                 attention_layers.append((name, module))
+#         return attention_layers
+    
+#     def get_attention_maps(self, model):
+#         attention_maps = []
+#         attention_layers = self.find_attention_layers(model)
+# #         for layer in model.backbone.bottom_up.layers:
+# #             for block in layer.blocks:
+# #                 if hasattr(block, 'attn') and hasattr(block.attn, 'attn'):
+# #                     attn = block.attn.attn  # Shape: [B, num_heads, N, N]
+# #                     attention_maps.append(attn.detach().cpu())
+#         print(f"Found {len(attention_layers)} attention layers")
+#         return attention_maps
+    
     # Copied directly from SimpleTrainer, add in custom manipulation with the loss
     # see https://detectron2.readthedocs.io/en/latest/_modules/detectron2/engine/train_loop.html#SimpleTrainer
     def run_step(self):
@@ -59,6 +78,7 @@ class LazyAstroTrainer(SimpleTrainer):
             loss_dict = {"total_loss": loss_dict}
         else:
             losses = sum(loss_dict.values())
+            loss_keys = list(loss_dict.keys())
             all_losses = [l.cpu().detach().item() for l in loss_dict.values()]
         self.optimizer.zero_grad()
         losses.backward()
@@ -75,15 +95,20 @@ class LazyAstroTrainer(SimpleTrainer):
                 self.iterCount,
                 " data time: ",
                 data_time,
-                " loss time: ",
+                " loss time:",
                 loss_time,
-                loss_dict.keys(),
-                all_losses,
+                "\ntotal_loss: ",
+                losses.cpu().detach().numpy(),
+            )
+            for key, value in zip(loss_keys, all_losses):
+                print(f"{key}: {value} | ", end='')
+            print(
                 "val loss: ",
                 self.valloss,
                 "lr: ",
                 self.scheduler.get_lr(),
             )
+#             print(self.get_attention_maps(self.model)[:7])
 
         #del data
         #gc.collect()

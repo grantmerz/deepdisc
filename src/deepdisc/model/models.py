@@ -5,6 +5,7 @@ import torch
 from detectron2.config import instantiate
 from detectron2.engine.defaults import create_ddp_model
 from detectron2.layers import Conv2d, ShapeSpec, cat, get_norm, nonzero_tuple
+from detectron2.modeling.roi_heads.fast_rcnn import FastRCNNOutputLayers
 from detectron2.modeling.matcher import Matcher
 from detectron2.modeling.poolers import ROIPooler
 from detectron2.modeling.roi_heads import CascadeROIHeads, StandardROIHeads, select_foreground_proposals
@@ -48,8 +49,53 @@ def return_lazy_model(cfg, freeze=True):
 
     return model
 
+# class CustomFastRCNNOutputLayers(FastRCNNOutputLayers):
+#     """CustomFastRCNN with focal loss to handle class imbalance.  Follows the detectron2 FastRCNNOutputLayers class init, except for
+    
+#     Parameters
+#     ----------
+#     focal_loss_gamma : float, default=2.0
+#         Controls the down-weighting of easy examples and the focusing on hard examples. Higher values of gamma result in more focusing on hard examples.
+    
+#     focal_loss_alpha : float or list of floats, default=0.25
+#         Controls the balance between positive and negative examples. Single float value (same alpha for all classes) or a list of floats (different alpha for each class).
+#     """
+#     def __init__(self, *args, focal_loss_gamma=2.0, focal_loss_alpha=0.25, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.focal_loss_gamma = focal_loss_gamma
+#         self.focal_loss_alpha = focal_loss_alpha
+    
+#     def focal_loss(self, scores, gt_classes):
+#         """
+#         Implements Focal Loss from https://arxiv.org/abs/1708.02002
+#         Args:
+#             scores: predicted class scores for each instance. Shape is (N, K+1), where N is the number of instances and K is the number of foreground classes. Last column is background class
+#             gt_classes: a long tensor of shape R that contains the gt class label of each proposal.
+#         """
+#         gamma = self.focal_loss_gamma
+#         alphas = self.focal_loss_alphas
+        
+#         N = scores.shape[0]
+#         K = scores.shape[1] - 1
+#         # FL(p_t) = −α_t * (1 − p_t)**γ * log(p_t)
+#         target = scores.new_zeros(N, K + 1)
+#         target[range(len(gt_classes)), gt_classes] = 1
+#         target = target[:, :K]
 
+#         cls_loss = F.binary_cross_entropy_with_logits(scores[:, :-1], target, reduction="none")
+#         p = torch.sigmoid(scores[:, :-1])
+#         p_t = p * target + (1 - p) * (1 - target)
+#         cls_loss = cls_loss * ((1 - p_t) ** gamma)
 
+#         if alpha >= 0: # 
+#             alpha_t = alpha * target + (1 - alpha) * (1 - target)
+# #         else:
+# #             alpha_t = torch.Tensor(alpha).to(scores.device) * target + (1 - torch.Tensor(alpha).to(scores.device)) * (1 - target)
+        
+#         cls_loss = alpha_t * cls_loss
+#         return cls_loss.mean()
+        
+    
 class WeightedRedshiftPDFCasROIHeads(CascadeROIHeads):
     """CascadeROIHead with added redshift pdf capability.  Follows the detectron2 CascadeROIHead class init, except for
 

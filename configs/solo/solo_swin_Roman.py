@@ -7,10 +7,10 @@ import numpy as np
 # ---------------------------------------------------------------------------- #
 # Local variables and metadata
 # ---------------------------------------------------------------------------- #
-epoch=64 #(NUM OF IMAGES / BATCH SIZE 280/4)
+epoch=566 #(TRAINING NUM OF IMAGES / BATCH SIZE 280/4 diff img set - 2351/4 = 588, same size img set - 2264/4=566 )
 bs=4 # 1 or 2 times the number of gpus
 metadata = OmegaConf.create() 
-metadata.classes = ["galaxy", "star", "no_match"]
+metadata.classes = ["galaxy", "star"]
 
 numclasses = len(metadata.classes)
 
@@ -20,31 +20,44 @@ numclasses = len(metadata.classes)
 # Get values from templates
 from ..COCO.cascade_mask_rcnn_swin_b_in21k_50ep import dataloader, model, train, lr_multiplier, optimizer
 import deepdisc.model.loaders as loaders
-from deepdisc.data_format.augment_image import dc2_train_augs, dc2_train_augs_full
+from deepdisc.data_format.augment_image import dc2_train_augs, dc2_train_augs_full, roman_train_augs
 from deepdisc.data_format.image_readers import RomanImageReader
 
 # Overrides
-dataloader.augs = dc2_train_augs
+dataloader.augs = roman_train_augs
 dataloader.train.total_batch_size = bs
 
 model.proposal_generator.anchor_generator.sizes = [[8], [16], [32], [64], [128]]
 model.roi_heads.num_classes = numclasses
 model.roi_heads.batch_size_per_image = 512
 
-model.roi_heads.num_classes = numclasses
-model.roi_heads.batch_size_per_image = 512
 model.backbone.bottom_up.in_chans = 4
+# one patch (50.93 -42.0)
+# model.pixel_mean = [
+#         0.72566669,
+#         1.08332919,
+#         0.89876418,
+#         1.081059
+# ]
+# model.pixel_std = [
+#         21.29308954,
+#         28.89818123,
+#         27.25925706,
+#         28.90273031
+# ]
+
+# all patches
 model.pixel_mean = [
-        0.72566669,
-        1.08332919,
-        0.89876418,
-        1.081059
+        0.96572415,
+        1.3813639,
+        1.1515364,
+        1.30524278
 ]
 model.pixel_std = [
-        21.29308954,
-        28.89818123,
-        27.25925706,
-        28.90273031
+        24.60855278,
+        33.10368844,
+        31.73495475,
+        33.16013963
 ]
 
 #model.roi_heads.num_components = 3
@@ -52,7 +65,6 @@ model.pixel_std = [
 #model.roi_heads.zbins = np.linspace(0,5,200)
 #model.roi_heads.weights = np.load('/home/g4merz/rail_deepdisc/configs/solo/zweights.npy')
 #model.roi_heads._target_ = RedshiftPDFCasROIHeads
-
 model.proposal_generator.nms_thresh = 0.3
 
 for box_predictor in model.roi_heads.box_predictors:
@@ -60,7 +72,7 @@ for box_predictor in model.roi_heads.box_predictors:
     box_predictor.test_score_thresh = 0.5
     box_predictor.test_nms_thresh = 0.3
     
-train.init_checkpoint = "./detectron2/projects/ViTDet/model_final_246a82.pkl"
+# train.init_checkpoint = "./detectron2/projects/ViTDet/model_final_246a82.pkl"
 
 optimizer.lr = 0.001
 dataloader.test.mapper = loaders.DictMapper

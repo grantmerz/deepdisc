@@ -363,6 +363,9 @@ class Visualizer:
             metadata (Metadata): dataset metadata (e.g. class names and colors)
             instance_mode (ColorMode): defines one of the pre-defined style for drawing
                 instances on an image.
+            enable_color_jitter (bool): Whether to apply random color variations to instances
+            of the same class. Defaults to True. When False, uses exact colors from
+            metadata.thing_colors without modification.
         """
         self.img = np.asarray(img_rgb).clip(0, 255).astype(np.uint8)
         if metadata is None:

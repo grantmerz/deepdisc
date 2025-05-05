@@ -382,12 +382,12 @@ class RedshiftPDFCasROIHeadsJWST(CascadeROIHeads):
 
             inds = np.cumsum(num_instances_per_img)
 
-            probs = torch.zeros((torch.sum(nin), self.zn)).to(fcs.device)
-            for j, z in enumerate(zs):
-                probs[:, j] = pdfs.log_prob(z)
+            #probs = torch.zeros((torch.sum(nin), self.zn)).to(fcs.device)
+            #for j, z in enumerate(zs):
+            #    probs[:, j] = pdfs.log_prob(z)
 
             for i, pred_instances in enumerate(instances):
-                pred_instances.pred_redshift_pdf = np.split(probs,inds)[i]
+                #pred_instances.pred_redshift_pdf = np.split(probs,inds)[i]
                 pred_instances.pred_gmm =  np.split(fcs,inds)[i]
                 if self.output_features:
                     pred_instances.features = np.split(features,inds)[i]

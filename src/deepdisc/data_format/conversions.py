@@ -7,6 +7,8 @@ import scarlet
 from detectron2.utils.file_io import PathManager
 from iopath.common.file_io import file_lock
 import os, json, shutil
+import logging
+logger = logging.getLogger(__name__)
 
 def fitsim_to_numpy(img_files, outdir):
     """Converts a list of single-band FITS images to multi-band numpy arrays

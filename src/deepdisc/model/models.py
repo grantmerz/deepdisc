@@ -44,7 +44,6 @@ def return_lazy_model(cfg, freeze=True):
         torch model
     """
     model = instantiate(cfg.model)
-
     if freeze:
         for param in model.parameters():
             param.requires_grad = False
@@ -54,6 +53,8 @@ def return_lazy_model(cfg, freeze=True):
         # Phase 2: Unfreeze region proposal generator with reduced lr
         for param in model.proposal_generator.parameters():
             param.requires_grad = True
+        for param in model.backbone.bottom_up.stem.parameters():
+            param.requires_grad= True
 
     model.to(cfg.train.device)
     model = create_ddp_model(model, **cfg.train.ddp)

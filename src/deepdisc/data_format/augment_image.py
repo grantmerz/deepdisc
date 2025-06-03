@@ -103,6 +103,37 @@ def multiband_gaussblur(image, rng_seed=None):
         imgs[:,:,i] = imaug
     return imgs
 
+
+def add_noise_JWST(image, rng_seed=None):
+    """
+    
+    Adds random noise to the images per-channel
+
+    
+    Parameters
+    ----------
+    image: ndarray (HxWxC)
+    rng_seed : np.random.Generator
+        Random state that is seeded. if none, use machine entropy.
+
+    Returns
+    -------
+    augmented image
+
+    """
+    if rng_seed is None:
+        rng_seed = np.random.default_rng()
+        
+    sig_noise = [0.00303755, 0.00242371, 0.00215799, 0.00156966, 0.00073413, 0.00157026, 0.00050586, 0.00182903, 0.00096616]
+
+    for i in range(9):
+        noise = np.random.randn(*image.shape[:-1])*sig_noise[i]
+        image[:,:,i]+=noise
+    return image
+
+
+
+
 def addelementwise16(image, rng_seed=None):
     """
     Parameters
@@ -296,7 +327,7 @@ def dc2_train_augs_full(image):
     return augs
 
 
-def jwst_dropout_augs(image):
+def jwst_sim_train_augs(image):
     """Get the augmentation list
 
     Parameters
@@ -316,12 +347,12 @@ def jwst_dropout_augs(image):
             T.RandomRotation([-90, 90, 180], sample_style="choice"),
             T.RandomFlip(prob=0.5),
             T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
-            detectron_addons.CustomAug(filter_dropout,prob=1.0),
+            #detectron_addons.CustomAug(filter_dropout,prob=1.0),
             #detectron_addons.CustomAug(redden,prob=1.0),
 
         ],
         k=-1,
-        cropaug=None,
+        cropaug=detectron_addons.CustomAug(add_noise_JWST,prob=1.0),
         #cropaug=T.RandomCrop("relative", (0.5, 0.5))
     )
     return augs

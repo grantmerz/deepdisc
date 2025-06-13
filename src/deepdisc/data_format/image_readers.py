@@ -148,6 +148,98 @@ class ImageReader(abc.ABC):
         """
         cls.norm_dict[name] = func
 
+class wlDC2ImageReader(ImageReader):
+    """An ImageReader for DC2 image files."""
+
+    def __init__(self, bands = ['u', 'g', 'r', 'i', 'z', 'y'], *args, **kwargs):
+        self.bands = bands
+        #print(self.bands)
+        # Pass arguments to the parent function.
+        super().__init__(*args, **kwargs)
+
+    def _read_image(self, filename):
+        """Read the image.
+
+        Parameters
+        ----------
+        filename : str
+            The filename indicating the image to read.
+
+        Returns
+        -------
+        im : numpy array
+            The image.
+        """
+        #bands = ['g', 'r', 'i', 'z', 'y']
+        eg = fits.getdata(os.path.join(filename + "_"+self.bands[0]+".fits"), memmap=False)
+        length, width = eg.shape
+        image = np.empty([length, width, len(self.bands)], dtype=np.float64)
+        for (i, band) in enumerate(self.bands):
+            image[:,:,i] = fits.getdata(os.path.join(filename + "_"+band+".fits"), memmap=False).astype('float64')
+        #print(image.shape)
+        return image.astype('float32')
+    
+class wlDC2psfImageReader(ImageReader):
+    """An ImageReader for DC2 image files."""
+
+    def __init__(self, *args, **kwargs):
+        # Pass arguments to the parent function.
+        super().__init__(*args, **kwargs)
+
+    def _read_image(self, filename):
+        """Read the image.
+
+        Parameters
+        ----------
+        filename : str
+            The filename indicating the image to read.
+
+        Returns
+        -------
+        im : numpy array
+            The image.
+        """
+        filters = ['u','g','r','i','z','y']
+        filter_psfs = [i+'_psfs' for i in filters]
+        filters += filter_psfs
+        g = fits.getdata(os.path.join(filename + "_g.fits"), memmap=False)
+        length, width = g.shape
+        image = np.empty([length, width, len(filters)], dtype=np.float64)
+        for (i, band) in enumerate(filters):
+            image[:,:,i] = fits.getdata(os.path.join(filename + "_"+band+".fits"), memmap=False).astype('float64')
+        
+        return image.astype('float32')
+
+class wlHSCImageReader(ImageReader):
+    """An ImageReader for DC2 image files."""
+
+    def __init__(self, bands, *args, **kwargs):
+        # Pass arguments to the parent function.
+        super().__init__(*args, **kwargs)
+        self.bands = bands
+        
+    def _read_image(self, filename):
+        """Read the image.
+
+        Parameters
+        ----------
+        filename : str
+            The filename indicating the image to read.
+
+        Returns
+        -------
+        im : numpy array
+            The image.
+        """
+        #filters = ['G', 'R', 'I', 'Z', 'Y']
+        eg = fits.getdata(os.path.join(filename + "_"+self.bands[0]+".fits"), memmap=False)
+        length, width = eg.shape
+        image = np.empty([length, width, len(self.bands)], dtype=np.float64)
+        for (i, band) in enumerate(self.bands):
+            image[:,:,i] = fits.getdata(os.path.join(filename + "_"+band+".fits"), memmap=False).astype('float64')
+        
+        return image.astype('float32')
+
 
 class DC2ImageReader(ImageReader):
     """An ImageReader for DC2 image files."""
@@ -209,4 +301,69 @@ class HSCImageReader(ImageReader):
         image[:, :, 0] = i
         image[:, :, 1] = r
         image[:, :, 2] = g
+        return image
+
+    
+class RAILImageReader(ImageReader):
+    """An ImageReader for RAIL image files."""
+
+    def __init__(self, *args, **kwargs):
+        # Pass arguments to the parent function.
+        super().__init__(*args, **kwargs)
+
+    def _read_image(self, filename):
+        """Read the image.
+
+        Parameters
+        ----------
+        filename : str
+            The filename indicating the image to read.
+
+        Returns
+        -------
+        im : numpy array
+            The image.
+        """
+        file = filename.split("/")[-1].split(".")[0]
+        base = os.path.dirname(filename)
+        fn = os.path.join(base, file) + ".npy"
+        image = np.load(fn)
+        image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32)
+        return image
+    
+class RAILImageReaderDrop(ImageReader):
+    """An ImageReader for RAIL image files."""
+
+    def __init__(self, dropfilt, *args, **kwargs):
+        
+        self.dropfilt=dropfilt
+
+        # Pass arguments to the parent function.
+        super().__init__(*args, **kwargs)
+        
+
+
+    def _read_image(self, filename):
+        """Read the image.
+
+        Parameters
+        ----------
+        filename : str
+            The filename indicating the image to read.
+
+        Returns
+        -------
+        im : numpy array
+            The image.
+        """
+        
+        #dropfilt = self.scalekwargs['dropfilt']
+        
+        file = filename.split("/")[-1].split(".")[0]
+        base = os.path.dirname(filename)
+        fn = os.path.join(base, file) + ".npy"
+        image = np.load(fn)
+        image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32)
+        #print(self.dropfilt)
+        image[:,:,self.dropfilt] = np.zeros(image[:,:,self.dropfilt].shape)
         return image

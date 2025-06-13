@@ -30,22 +30,32 @@ def annotate_dc2(images, mask, idx, filters):
         # ellipse_pars = [hdu.header["ELL_PARM"] for hdu in hdul]
         bbox = [list(map(int, hdu.header["BBOX"].split(","))) for hdu in hdul]
         area = [hdu.header["AREA"] for hdu in hdul]
+        shear_1 = [hdu.header["shear_1"] for hdu in hdul]
+        shear_2 = [hdu.header["shear_2"] for hdu in hdul]
+        convergence = [hdu.header["kappa"] for hdu in hdul]
         # imags = [hdu.header["IMAG"] for hdu in hdul]
         # oids = [hdu.header["hsc_oid"] for hdu in hdul]
         redshifts = [hdu.header["redshift"] for hdu in hdul]
         obj_ids = [hdu.header["objid"] for hdu in hdul]
         mag_is = [hdu.header["mag_i"] for hdu in hdul]
-
-    bn = os.path.basename(images[FILT_INX])
-    tract = int(bn.split("_")[1])
+        et_1 = [hdu.header["et_1"] for hdu in hdul]
+        et_2 = [hdu.header["et_2"] for hdu in hdul]
+        size_1 = [hdu.header["size_1"] for hdu in hdul]
+        #psfs = np.array([[hdu.header[f'psf_{i}'] for hdu in hdul] for i in range(18)])
+        
+    catalog = images[FILT_INX].split(os.sep)[-6]
+    catagory = images[FILT_INX].split(os.sep)[-5]
+    tract = images[FILT_INX].split(os.sep)[-4]
+    patch = images[FILT_INX].split(os.sep)[-3]
+    sp = images[FILT_INX].split(os.sep)[-2]
     #patch = (
     #    int(bn.split("_")[2].split("_")[2][0]),
     #    int(bn.split("_")[2].split("_")[2][-1]),
     #)
-    patch = bn.split('_')[2]
-    sp = int(bn.split("_")[3])
-    #record[f"filename"] = f"/home/g4merz/DC2/nersc_data/data/{tract}_{patch[0]},{patch[1]}_{sp}_images.npy"
-    record[f"filename"] = f"/home/shared/hsc/DC2/processed_data/train/{tract}_{patch}_{sp}_images.npy"
+    #patch = bn.split('_')[2]
+    #sp = int(bn.split("_")[3])
+    record[f"filename"] = f"/home/wenyinli/wl_deepdisc/datasets/{catalog}/{catagory}/{tract}/{patch}/{sp}/image"
+    #record[f"filename"] = f"/home/shared/hsc/DC2/processed_data/train/{tract}_{patch}_{sp}_images.npy"
     record["image_id"] = idx
     record["height"] = height
     record["width"] = width
@@ -92,6 +102,13 @@ def annotate_dc2(images, mask, idx, filters):
             "redshift": redshifts[i],
             "obj_id": obj_ids[i],
             "mag_i": mag_is[i],
+            "shear_1": shear_1[i],
+            "shear_2": shear_2[i],
+            "convergence": convergence[i],
+            "et_1": et_1[i],
+            "et_2": et_2[i],
+            "size_1": size_1[i]
+            #"psfs": psfs[:,i],
         }
 
         objs.append(obj)

@@ -128,6 +128,37 @@ class SaveHook(HookBase):
         self.trainer.checkpointer.save(self.output_name)  # Note: Set the name of the output model here
 
 
+        
+        
+class NewSaveHook(HookBase):
+
+    """
+    This Hook saves the model during training
+
+    """
+    
+    output_name = "model_temp"
+
+    
+    def __init__(self, save_period):
+        self._period = save_period
+
+    def set_output_name(self, name):
+        self.output_name = name
+
+    #def after_train(self):
+    #    self.trainer.checkpointer.save(self.output_name)  # Note: Set the name of the output model here
+
+    def after_step(self):
+        next_iter = self.trainer.iter + 1
+        is_final = next_iter == self.trainer.max_iter
+        if is_final or (self._period > 0 and next_iter % self._period == 0):  # or (next_iter == 1):
+            print("saving", self.output_name)
+            self.trainer.checkpointer.save(f'{self.output_name}_{next_iter//self._period}')
+            if is_final:
+                self.trainer.checkpointer.save(self.output_name)
+
+        
 #
 class LossEvalHook(HookBase):
 
@@ -341,6 +372,34 @@ class CustomAug(Augmentation):
         self._init(locals())
 
     def get_transform(self, image):
+        """
+        Based on probability, choose whether you want to apply the given function or not
+        """
+        do = self._rand_range() < self.prob
+        if do:
+            return GenericWrapperTransform(self.custom_function)
+        else:
+            return (
+                T.NoOpTransform()
+            )  # it returns a Transform which just returns the original Image array only
+        
+
+class ShapeAug(Augmentation):
+    """
+    Given a probability and a custom function, return a GenericWrapperTransform object whose `apply_image`
+    will be called to perform augmentation
+    """
+
+    def __init__(self, custom_function, prob=1.0):
+        """
+        Args:
+            custom_op: Operation to use. Must be a function takes an ndarray and returns an ndarray
+            prob (float): probability of applying the function
+        """
+        super().__init__()
+        self._init(locals())
+
+    def get_transform(self, image, instances):
         """
         Based on probability, choose whether you want to apply the given function or not
         """

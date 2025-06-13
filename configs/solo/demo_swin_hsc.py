@@ -11,7 +11,7 @@ import os
 epoch=2
 bs=1
 metadata = OmegaConf.create() 
-metadata.classes = ["star", "galaxy"]
+metadata.classes = ["galaxy"]
 
 numclasses = len(metadata.classes)
 
@@ -23,6 +23,7 @@ from ..COCO.cascade_mask_rcnn_swin_b_in21k_50ep import dataloader, model, train,
 import deepdisc.model.loaders as loaders
 from deepdisc.data_format.augment_image import train_augs
 from deepdisc.data_format.image_readers import HSCImageReader
+from deepdisc.model.models import CNNShearROIHeads, OldRedshiftPDFCasROIHeads
 
 # Overrides
 dataloader.augs = train_augs
@@ -32,6 +33,8 @@ model.proposal_generator.anchor_generator.sizes = [[8], [16], [32], [64], [128]]
 model.roi_heads.num_classes = numclasses
 model.roi_heads.batch_size_per_image = 512
 
+model.roi_heads._target_ = CNNShearROIHeads
+model.roi_heads.shear_factor = 1e4
 model.roi_heads.num_classes = numclasses
 model.roi_heads.batch_size_per_image = 512
 
@@ -40,7 +43,9 @@ model.roi_heads.batch_size_per_image = 512
 #Change for different data sets
 
 #This is the number of color channels in the images
-model.backbone.bottom_up.in_chans = 3         
+model.backbone.bottom_up.in_chans = 6
+model.pixel_mean = [0,0,0,0,0,0]
+model.pixel_std = [1,1,1,1,1,1]
 
 # ---------------------------------------------------------------------------- #
 model.proposal_generator.nms_thresh = 0.3

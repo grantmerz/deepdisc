@@ -53,87 +53,14 @@ from torch.distributions.normal import Normal
 from torch.nn import functional as F
 
 
-def plot_stretch_Q(
-    dataset_dicts,
-    astro_metadata,
-    num=0,
-    stretches=[0.01, 0.1, 0.5, 1],
-    Qs=[1, 10, 5, 100],
-    ceil_percentile=99.5,
-):
-    """
-    Plots different normalizations of your image using the stretch, Q parameters.
-
-    Parameters
-    ----------
-    dataset_dicts : dict
-        detectron dataset dictionary
-    num : int
-        Dataset number/index to use
-    stretches : array
-        List of stretch params you want to permutate through to find optimal image normalization.
-        Default is [0.01, 0.1, 0.5, 1]
-    Qs : array
-        List of Q params you want to permutate through to find optimal image normalization.
-        Default is [1, 10, 5, 100]
-
-    Code adapted from:
-        https://pmelchior.github.io/scarlet/tutorials/display.html
-
-    Returns
-    -------
-    fig : Figure object
-
-    """
-
-    d = dataset_dicts[num]
-
-    fig, ax = plt.subplots(len(stretches), len(Qs), figsize=(9, 9))
-    for i, stretch in enumerate(stretches):
-        for j, Q in enumerate(Qs):
-            img = read_image(
-                d,
-                normalize="lupton",
-                stretch=stretch,
-                Q=Q,
-                ceil_percentile=ceil_percentile,
-            )
-            # Scale the RGB channels for the image
-            visualizer = Visualizer(img, metadata=astro_metadata)
-            out = visualizer.draw_dataset_dict(d)
-            ax[i][j].imshow(out.get_image(), origin="lower")
-            ax[i][j].set_title("Stretch {}, Q {}".format(stretch, Q), fontsize=10)
-            ax[i][j].axis("off")
-
-    return fig
-
-
-"""Note:SaveHook is in charge of saving the trained model"""
-
-
-class SaveHook(HookBase):
-
-    """
-    This Hook saves the model after training
-
-    """
-
-    output_name = "model_temp"
-
-    def set_output_name(self, name):
-        self.output_name = name
-
-    def after_train(self):
-        print("saving", self.output_name)
-        self.trainer.checkpointer.save(self.output_name)  # Note: Set the name of the output model here
-
-
-        
         
 class NewSaveHook(HookBase):
 
     """
     This Hook saves the model during training
+
+    Args:
+        save_period (int): regularly save after this number of iterations 
 
     """
     
@@ -159,7 +86,6 @@ class NewSaveHook(HookBase):
                 self.trainer.checkpointer.save(self.output_name)
 
         
-#
 class LossEvalHook(HookBase):
 
     """

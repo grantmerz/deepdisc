@@ -148,31 +148,3 @@ class ImageReader(abc.ABC):
         """
         cls.norm_dict[name] = func
 
-
-class DC2ImageReader(ImageReader):
-    """An ImageReader for DC2 image files."""
-
-    def __init__(self, *args, **kwargs):
-        # Pass arguments to the parent function.
-        super().__init__(*args, **kwargs)
-
-    def _read_image(self, filename):
-        """Read the image.
-
-        Parameters
-        ----------
-        filename : str
-            The filename indicating the image to read.
-
-        Returns
-        -------
-        im : numpy array
-            The image.
-        """
-        file = filename.split("/")[-1].split(".")[0]
-        base = os.path.dirname(filename)
-        fn = os.path.join(base, file) + ".npy"
-        image = np.load(fn)
-        image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32)
-        return image
-

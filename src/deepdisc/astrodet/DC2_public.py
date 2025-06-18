@@ -53,7 +53,7 @@ def get_DC2_data(
     # print(f'Loading "{filepath}".')
     # try:
 
-    dirpath = "/home/g4merz/DC2/coadd-t3828-t3829/deepCoadd-results/"
+    dirpath = "./"
     # fp = os.path.join('/',*[dirpath,filters[i],tract,p,f'calexp-{filters[i]}-{tract}-{p}.fits'])
 
     # with fits.open(filepath) as obs_hdul:
@@ -113,10 +113,7 @@ def get_centers(sub_shape, n):
 def get_cutout(tract, patch, sp, plot=True):
     nblocks = 8
     nfilters = 6
-
-    # Loading "/home/g4merz/deblend/data/raw_HSC_DR3/HSC-G/calexp-HSC-G-8765-2,3.fits".
-    # hsc_dirpath = '/home/g4merz/deblend/data/raw_HSC_DR3/'
-
+    
     dat, cutout = get_DC2_data(tract=tract, patch=patch, coord=None, cutout_size=None)
 
     block_size = [dat.shape[1] // nblocks, dat.shape[2] // nblocks]

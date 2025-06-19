@@ -263,8 +263,7 @@ def return_savehook(output_name, save_period):
     -------
         a SaveHook
     """
-    #saveHook = detectron_addons.SaveHook()
-    saveHook = detectron_addons.NewSaveHook(save_period)
+    saveHook = detectron_addons.SaveHook(save_period)
     saveHook.set_output_name(output_name)
     return saveHook
 

@@ -151,142 +151,6 @@ def get_matched_object_classes_new(dataset_dicts, predictor):
     return true_classes, pred_classes
 
 
-def get_matched_z_pdfs(dataset_dicts, imreader, key_mapper, predictor, ids=False, blendedness=False):
-    """Returns redshift pdfs for matched pairs of ground truth and detected objects test images
-
-    Parameters
-    ----------
-    dataset_dicts : list[dict]
-        The dictionary metadata for a test images
-    imreader: ImageReader object
-        An object derived from ImageReader base class to read the images.
-    key_mapper: function
-        The key_mapper should take a dataset_dict as input and return the key used by imreader
-    predictor: AstroPredictor
-        The predictor object used to make predictions on the test set
-
-    Returns
-    -------
-        z_trues: list(float)
-            The redshifts of matched objects in the ground truth list
-        z_preds: list(array(float))
-            The redshift pdfs of matched objects in the detections list
-    """
-
-    IOUthresh = 0.5
-    zs = np.linspace(-1, 5.0, 200)
-
-    ztrues = []
-    zpreds = []
-    matched_ids=[]
-    matched_bnds=[]
-
-    for d in dataset_dicts:
-        outputs = get_predictions(d, imreader, key_mapper, predictor)
-        matched_gts, matched_dts = get_matched_object_inds(d, outputs)
-
-        for gti, dti in zip(matched_gts, matched_dts):
-            ztrue = d["annotations"][int(gti)]["redshift"]
-            pdf = np.exp(outputs["instances"].pred_redshift_pdf[int(dti)].cpu().numpy())
-            if ids:
-                oid = d["annotations"][int(gti)]["obj_id"]
-                matched_ids.append(oid)
-            if blendedness:
-                bnd = d["annotations"][int(gti)]["blendedness"]
-                matched_bnds.append(bnd)
-
-            ztrues.append(ztrue)
-            zpreds.append(pdf)
-
-    return ztrues, zpreds, matched_ids, matched_bnds
-
-
-def get_matched_z_pdfs_new(dataset_dicts, predictor, ids=False, blendedness=False):
-    """Returns redshift pdfs for matched pairs of ground truth and detected objects test images
-    assuming the dataset_dicts have the image HxWxC in the 'image_shaped' field
-
-    Parameters
-    ----------
-    dataset_dicts : list[dict]
-        The dictionary metadata for a test images
-    predictor: AstroPredictor
-        The predictor object used to make predictions on the test set
-
-    Returns
-    -------
-        z_trues: list(float)
-            The redshifts of matched objects in the ground truth list
-        z_preds: list(array(float))
-            The redshift pdfs of matched objects in the detections list
-    """
-    IOUthresh = 0.5
-    zs = np.linspace(-1, 5.0, 200)
-
-    ztrues = []
-    zpreds = []
-    matched_ids=[]
-    matched_bnds=[]
-
-    for d in dataset_dicts:
-        outputs = get_predictions_new(d, predictor)
-        matched_gts, matched_dts = get_matched_object_inds(d, outputs)
-
-        for gti, dti in zip(matched_gts, matched_dts):
-            ztrue = d["annotations"][int(gti)]["redshift"]
-            pdf = np.exp(outputs["instances"].pred_redshift_pdf[int(dti)].cpu().numpy())
-            if ids:
-                oid = d["annotations"][int(gti)]["obj_id"]
-                matched_ids.append(oid)
-            if blendedness:
-                bnd = d["annotations"][int(gti)]["blendedness"]
-                matched_bnds.append(bnd)
-
-
-            ztrues.append(ztrue)
-            zpreds.append(pdf)
-
-    return ztrues, zpreds, matched_ids, matched_bnds
-
-
-def get_matched_z_points_new(dataset_dicts, predictor):
-    """Returns redshift point estimates for matched pairs of ground truth and detected objects test images
-    assuming the dataset_dicts have the image in the 'image_shaped' field
-
-    Parameters
-    ----------
-    dataset_dicts : list[dict]
-        The dictionary metadata for a test images
-    predictor: AstroPredictor
-        The predictor object used to make predictions on the test set
-
-    Returns
-    -------
-        z_trues: list(float)
-            The redshifts of matched objects in the ground truth list
-        z_preds: list(array(float))
-            The redshift pdfs of matched objects in the detections list
-    """
-    IOUthresh = 0.5
-    zs = np.linspace(-1, 5.0, 200)
-
-    ztrues = []
-    zpreds = []
-
-    for d in dataset_dicts:
-        outputs = get_predictions_new(d, predictor)
-        matched_gts, matched_dts = get_matched_object_inds(d, outputs)
-
-        for gti, dti in zip(matched_gts, matched_dts):
-            ztrue = d["annotations"][int(gti)]["redshift"]
-            zpred = outputs["instances"].pred_redshift[int(dti)].cpu().numpy()
-
-            ztrues.append(ztrue)
-            zpreds.append(zpred)
-
-    return ztrues, zpreds
-
-
-
 def run_batched_match_class(dataloader, predictor):
     """
     Test function not yet implemented for batch prediction
@@ -307,42 +171,30 @@ def run_batched_match_class(dataloader, predictor):
     return true_classes, pred_classes
 
 
-def run_batched_match_redshift(dataloader, predictor, ids=False, blendedness=False):
-    """
-    Test function not yet implemented for batch prediction
-
-    """
-    ztrues = []
-    zpreds = []
-    matched_ids = []
-    matched_bnds = []
-
-    with torch.no_grad():
-        for i, dataset_dicts in enumerate(dataloader):
-            batched_outputs = predictor.model(dataset_dicts)
-            for outputs,d in zip(batched_outputs, dataset_dicts):
-                matched_gts, matched_dts = get_matched_object_inds(d, outputs)
-                for gti, dti in zip(matched_gts, matched_dts):
-                    ztrue = d["annotations"][int(gti)]["redshift"]
-                    pdf = np.exp(outputs["instances"].pred_redshift_pdf[int(dti)].cpu().numpy())
-                    ztrues.append(ztrue)
-                    zpreds.append(pdf)
-                    if ids:
-                        oid = d["annotations"][int(gti)]["obj_id"]
-                        matched_ids.append(oid)
-                    if blendedness:
-                        bnd = d["annotations"][int(gti)]["blendedness"]
-                        matched_bnds.append(bnd)
-
-
-    return ztrues, zpreds, matched_ids, matched_bnds
-
-
 
 def run_batched_get_object_coords(dataloader, predictor, oclass=True, gmm=False):
-    """
-    Test function not yet implemented for batch prediction
+    """Returns object classes for matched pairs of ground truth and detected objects test images
+    assuming the dataset_dicts have the image HxWxC in the 'image_shaped' field
 
+    Parameters
+    ----------
+    dataloader : Dataloader
+        Dataloader that reads in images and formats input for the model
+    predictor: AstroPredictor
+        The predictor object used to make predictions on the test set
+
+    Returns
+    -------
+        zpreds: list(float)
+            The predicted reshifts of detected objects
+        all_ras: list(float)
+            The RAs of detected objects
+        all_decs: list(float)
+            The DECs of detected objects
+        oclasses: list(int)
+            The predicted classes of detected objects
+        scores: list(float)
+            The confidence scores of detected objects  
     """
     zpreds = []
     all_decs = []

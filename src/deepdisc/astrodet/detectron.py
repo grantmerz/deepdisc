@@ -110,31 +110,15 @@ def plot_stretch_Q(
 
 """Note:SaveHook is in charge of saving the trained model"""
 
-
 class SaveHook(HookBase):
-
-    """
-    This Hook saves the model after training
-
-    """
-
-    output_name = "model_temp"
-
-    def set_output_name(self, name):
-        self.output_name = name
-
-    def after_train(self):
-        print("saving", self.output_name)
-        self.trainer.checkpointer.save(self.output_name)  # Note: Set the name of the output model here
-
-
-        
-        
-class NewSaveHook(HookBase):
 
     """
     This Hook saves the model during training
 
+    Parameters
+    ----------
+    save_period: int
+        How many iterations to run before a checkpoint is saved
     """
     
     output_name = "model_temp"

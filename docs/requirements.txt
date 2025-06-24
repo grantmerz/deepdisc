@@ -1,0 +1,14 @@
+sphinx
+sphinx-rtd-theme
+sphinx-autoapi
+nbsphinx
+ipython
+jupytext
+jupyter
+matplotlib
+numpy
+torch
+torchvision
+pybind11
+peigen
+mpi4py

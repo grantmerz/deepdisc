@@ -341,7 +341,7 @@ def run_scarlet(
     t0 = time.time()
     # Loop through detections in catalog
 
-    '''
+
     starlet_sources, skipped = scarlet.initialization.init_all_sources(
         model_frame,
         centers,
@@ -352,20 +352,28 @@ def run_scarlet(
         silent=True,
         set_spectra=False,
     )
-    '''
-    starlet_sources = []
-    for k in range(len(catalog)):
-        # Is the source compact relative to the PSF?
-        if spread[k] < 1:
-            compact = True
-        else:
-            compact = False
-        # Try modeling each source as a single ExtendedSource first
-        new_source = scarlet.ExtendedSource(model_frame, (catalog['new_y'].values[k], catalog['new_x'].values[k]), observation,
-                                            K=1, thresh=morph_thresh, compact=compact)
 
+
+    if len(starlet_sources)==0:
         
-        starlet_sources.append(new_source)
+        print("Modeling as extended sources")
+        for k, src in enumerate(catalog):
+
+            # Is the source compact relative to the PSF?
+            if spread[k] < 1:
+                compact = True
+            else:
+                compact = False
+
+            # Try modeling each source as a single ExtendedSource first
+            new_source = scarlet.ExtendedSource(model_frame, (src['y'], src['x']), observation,
+                                                K=1, thresh=morph_thresh, compact=compact)
+
+
+            starlet_sources.append(new_source)
+    
+    
+    print(starlet_sources)
     
     # Fit scarlet blend
     starlet_blend, logL = fit_scarlet_blend(

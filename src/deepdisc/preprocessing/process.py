@@ -16,7 +16,7 @@ def write_scarlet_results(
     outdir,
     filters,
     s,
-    source_catalog=None,
+    catalog=None,
 ):
     """
     Saves images in each channel, with headers for each source in image,
@@ -82,26 +82,11 @@ def write_scarlet_results(
         model_hdr["area"] = bbox_w * bbox_h
 
         if source_cat is not None:
-            #catalog_redshift = source_cat["redshift_truth"]
-            #oid = source_cat["objectId"]
-            # property_list = ["redshift", "id", "mag_i", "shear_1", "shear_2", "convergence", "magnification"]
-            catalog_redshift = source_cat["redshift"]
-            oid = source_cat["id"]
-            imag = source_cat["mag_i"]
-            shear_1 = source_cat["shear_1"]
-            shear_2 = source_cat["shear_2"]
-            convergence = source_cat["convergence"]
-            magnification = source_cat["magnification"]
-            
-            if not np.isfinite(imag):
-                imag = -1
-            model_hdr["cat_id"] = source_cat['truth_type']  # Category ID
-            model_hdr["redshift"] = catalog_redshift
-            model_hdr["objid"] = oid
-            model_hdr["mag_i"] = imag
-            model_hdr["shear_1"] = shear_1
-            model_hdr["shear_2"] = shear_2
-            model_hdr["convergence"] = convergence
+            for key in source_cat.keys():
+                value = source_cat[key]
+                if not np.isfinite(value):
+                    imag = -1
+                model_hdr[key] = value
             
             
         else:
@@ -129,8 +114,8 @@ def write_scarlet_results(
         
         # Create header entry for each scarlet source
         for k, (src, cat) in enumerate(zip(starlet_sources, catalog_deblended)):
-            if source_catalog is not None:
-                source_cat = source_catalog.iloc[k]
+            if catalog is not None:
+                source_cat = catalog.iloc[k]
             else:
                 source_cat=None
             # Get each model, make into image
@@ -165,8 +150,8 @@ def write_scarlet_results(
         for i, f in enumerate(filters[0]):
             # Create header entry for each scarlet source
             for k, (src, cat) in enumerate(zip(starlet_sources, catalog_deblended)):
-                if source_catalog is not None:
-                    source_cat = source_catalog.iloc[k]
+                if catalog is not None:
+                    source_cat = catalog.iloc[k]
                 else:
                     source_cat=None
 

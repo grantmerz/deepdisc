@@ -24,7 +24,6 @@ from ..common.models.mask_rcnn_fpn import model
 # ---------------------------------------------------------------------------- #
 bs = 1
 
-
 metadata = OmegaConf.create() 
 metadata.classes = ["object"]
 
@@ -36,20 +35,17 @@ dataloader.train.total_batch_size = bs
 
 model.proposal_generator.anchor_generator.sizes = [[8], [16], [32], [64], [128]]
 
-#This is the number of color channels in the images
-model.backbone.bottom_up.in_channels = 6
-#model.pixel_mean = [0,0,0,0,0,0]
-#model.pixel_std = [1,1,1,1,1,1]
-
 model.roi_heads.num_classes = numclasses
 model.roi_heads.batch_size_per_image = 512
 model.proposal_generator.post_nms_topk=[6000,1000]
 model.roi_heads.box_predictor.test_topk_per_image = 500
 model.roi_heads.box_predictor.test_score_thresh = 0.3
 model.roi_heads.box_predictor.test_nms_thresh = 0.5
+
+model.backbone.square_pad = 64
    
 
-#train.init_checkpoint = "detectron2://ImageNetPretrained/MSRA/R-50.pkl" 
+train.init_checkpoint = "detectron2://ImageNetPretrained/MSRA/R-50.pkl" 
 #train.init_checkpoint = '/home/g4merz/DC2/model_tests/zoobot/zoobot_GZ2_resnet50_d2.pkl'
 
 optimizer.lr = 0.001

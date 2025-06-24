@@ -43,20 +43,25 @@ class ImageReader(abc.ABC):
         """
         pass
 
-    def __call__(self, key):
+    def __call__(self, image):
         """Read the image and apply scaling.
 
         Parameters
         ----------
-        key : str or int
-            The key indicating the image to read.
+        image : str or numpy array
+            The path indicating the image to read or image data in a numpy array with dimensions (band, h, w).
 
         Returns
         -------
         im : numpy array
             The image.
         """
-        im = self._read_image(key)
+        if isinstance(image, str) or all(isinstance(s, str) for s in image):
+            im = self._read_image(image)
+        elif isinstance(image, np.ndarray):
+            im = np.transpose(image, axes=(1, 2, 0)).astype(np.float32)
+        else:
+            raise ValueError("Input must be a string or a numpy array.")
         im_scale = self.scaling(im, **self.scalekwargs)
         return im_scale
 
@@ -268,7 +273,6 @@ class DC2ImageReader(ImageReader):
         image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32)
         return image
 
-
 class HSCImageReader(ImageReader):
     """An ImageReader for HSC image files."""
 
@@ -301,5 +305,30 @@ class HSCImageReader(ImageReader):
         image[:, :, 0] = i
         image[:, :, 1] = r
         image[:, :, 2] = g
+        return image
+
+
+class RomanImageReader(ImageReader):
+    """An ImageReader for Roman image files."""
+
+    def __init__(self, *args, **kwargs):
+        # Pass arguments to the parent function.
+        super().__init__(*args, **kwargs)
+
+    def _read_image(self, filename):
+        """Read the image.
+
+        Parameters
+        ----------
+        filename : str
+            The filename indicating the image to read.
+
+        Returns
+        -------
+        im : numpy array
+            The image.
+        """
+        image = np.load(filename) # (4, 512, 512)
+        image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32) # (512, 512, 4)
         return image
 

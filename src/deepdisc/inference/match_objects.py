@@ -8,13 +8,15 @@ import deepdisc.astrodet.astrodet as toolkit
 from deepdisc.inference.predictors import get_predictions, get_predictions_new
 
 
-def get_matched_object_inds(dataset_dict, outputs):
+def get_matched_object_inds(dataset_dict, outputs, IOUthresh = 0.5):
     """Returns indices for matched pairs of ground truth and detected objects in an image
 
     Parameters
     ----------
     dataset_dict : dictionary
         The dictionary metadata for a single image
+    IOUthresh : float
+        The IOU threshold used to match detections and ground truth
 
     Returns
     -------
@@ -25,8 +27,7 @@ def get_matched_object_inds(dataset_dict, outputs):
         outputs: list(Intances)
             The list of detected object Instances
     """
-
-    IOUthresh = 0.5
+    
 
     gt_boxes = np.array([a["bbox"] for a in dataset_dict["annotations"]])
     # Convert to the mode model expects
@@ -378,4 +379,6 @@ def run_batched_get_object_coords(dataloader, predictor, oclass=True, gmm=False)
         return zpreds, all_ras, all_decs, oclasses, gmms, scores
     
     else:
+
         return zpreds, all_ras, all_decs, oclasses, scores
+

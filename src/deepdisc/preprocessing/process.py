@@ -34,7 +34,7 @@ def write_scarlet_results(
         Image frame of source model
     catalog_deblended: list
         Deblended source detection catalog
-    source_catalog: pandas df
+    catalog: pandas df
         External catalog of source detections
     segmentation_masks: list
         List of segmentation mask of each object in image
@@ -87,7 +87,6 @@ def write_scarlet_results(
                 if not np.isfinite(value):
                     imag = -1
                 model_hdr[key] = value
-            
             
         else:
             # Ellipse parameters (a, b, theta) from deblend catalog
@@ -184,7 +183,7 @@ def write_scarlet_results_nomodels(
     outdir,
     filters,
     s,
-    source_catalog=None,
+    catalog=None,
 ):
     """
     Saves images in each channel, with headers for each source in image,
@@ -202,7 +201,7 @@ def write_scarlet_results_nomodels(
         Image frame of source model
     catalog_deblended: list
         Deblended source detection catalog
-    source_catalog: pandas df
+    catalog: pandas df
         External catalog of source detections
     segmentation_masks: list
         List of segmentation mask of each object in image
@@ -311,9 +310,8 @@ def write_scarlet_results_nomodels(
         for i, f in enumerate(filters[0]):
             # Create header entry for each scarlet source
             for k, src in enumerate(starlet_sources):
-                if source_catalog is not None:
-                    source_catalog = pd.DataFrame(source_catalog)
-                    source_cat = source_catalog.iloc[k]
+                if catalog is not None:
+                    source_cat = catalog.iloc[k]
                 else:
                     source_cat=None
 

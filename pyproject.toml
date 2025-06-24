@@ -17,12 +17,26 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
+    "numpy<2.0",
+    "scipy",
+    "pandas",
+    "grpcio",
+    "h5py",
+    "mpi4py",
+    "astropy",
+    "pybind11",
+    "imgaug",
+    "proxmin",
+    "peigen",
+    "autograd",
+    "timm",
+    "scarlet@git+https://github.com/pmelchior/scarlet.git",
 ]
 
 [metadata]
 description = "Deep learning for astronomical image processing using detectron2."
 long_description = { file = "README.md" }
-url = "https://github.com/lincc-frameworks/deepdisc"
+url = "https://github.com/grantmerz/deepdisc"
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]

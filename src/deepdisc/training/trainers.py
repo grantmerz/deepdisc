@@ -27,7 +27,9 @@ class LazyAstroTrainer(SimpleTrainer):
 
         # record loss over iteration
         self.lossList = []
+        self.lossdict_epochs = {}
         self.vallossList = []
+        self.vallossdict_epochs = {}
 
         self.period = 20
         self.iterCount = 0
@@ -35,6 +37,7 @@ class LazyAstroTrainer(SimpleTrainer):
         self.scheduler = self.build_lr_scheduler(cfg, optimizer)
         # self.scheduler = instantiate(cfg.lr_multiplier)
         self.valloss = 0
+        self.vallossdict={}
 
     # Note: print out loss over p iterations
     def set_period(self, p):
@@ -52,6 +55,14 @@ class LazyAstroTrainer(SimpleTrainer):
         start = time.perf_counter()
         loss_dict = self.model(data)
         loss_time = time.perf_counter() - start
+
+    
+        ld = {
+             k: v.detach().cpu().item() if (isinstance(v, torch.Tensor) and v.numel()==1)  else v.tolist()
+             for k, v in loss_dict.items()
+        }
+
+        self.lossdict_epochs[str(self.iterCount)] = ld
 
         # print('Loss dict',loss_dict)
         if isinstance(loss_dict, torch.Tensor):
@@ -104,6 +115,114 @@ class LazyAstroTrainer(SimpleTrainer):
         """
 
         self.vallossList.append(val_loss)
+
+    def add_val_loss_dict(self, val_loss_dict):
+        """
+        It now calls :func:`detectron2.solver.build_lr_scheduler`.
+        Overwrite it if you'd like a different scheduler.
+        """
+
+        self.vallossdict_epochs[str(self.iterCount)] = val_loss_dict
+
+
+class LazyAstroEvaluator(SimpleTrainer):
+    def __init__(self, model, data_loader, optimizer, cfg):
+        super().__init__(model, data_loader, optimizer)
+
+        # Borrowed from DefaultTrainer constructor
+        # see https://detectron2.readthedocs.io/en/latest/_modules/detectron2/engine/defaults.html#DefaultTrainer
+        self.checkpointer = checkpointer.DetectionCheckpointer(
+            # Assume you want to save checkpoints together with logs/statistics
+            model,
+            cfg.OUTPUT_DIR,
+        )
+        # load weights
+        self.checkpointer.load(cfg.train.init_checkpoint)
+
+        # record loss over iteration
+        self.lossList = []
+        self.lossdict_epochs = {}
+        self.vallossList = []
+        self.vallossdict_epochs = {}
+
+        self.period = 20
+        self.iterCount = 0
+
+        self.scheduler = self.build_lr_scheduler(cfg, optimizer)
+        # self.scheduler = instantiate(cfg.lr_multiplier)
+        self.valloss = 0
+        self.vallossdict={}
+
+    # Note: print out loss over p iterations
+    def set_period(self, p):
+        self.period = p
+
+    # Copied directly from SimpleTrainer, add in custom manipulation with the loss
+    # see https://detectron2.readthedocs.io/en/latest/_modules/detectron2/engine/train_loop.html#SimpleTrainer
+    def run_step(self):
+        # Copying inference_on_dataset from evaluator.py
+        #total = len(self.data_loader)
+        #num_warmup = min(5, total - 1)
+
+        start_time = time.perf_counter()
+        total_compute_time = 0
+        losses = []
+        losses_dicts =[]
+        with torch.no_grad():
+            for idx, inputs in enumerate(self.data_loader):
+                '''
+                if idx == num_warmup:
+                    start_time = time.perf_counter()
+                    total_compute_time = 0
+                start_compute_time = time.perf_counter()
+                if torch.cuda.is_available():
+                    torch.cuda.synchronize()
+                total_compute_time += time.perf_counter() - start_compute_time
+                iters_after_start = idx + 1 - num_warmup * int(idx >= num_warmup)
+                seconds_per_img = total_compute_time / iters_after_start
+                if idx >= num_warmup * 2 or seconds_per_img > 5:
+                    total_seconds_per_img = (time.perf_counter() - start_time) / iters_after_start
+                    eta = datetime.timedelta(seconds=int(total_seconds_per_img * (total - idx - 1)))
+                    log_every_n_seconds(
+                        logging.INFO,
+                        "Loss on Validation  done {}/{}. {:.4f} s / img. ETA={}".format(
+                            idx + 1, total, seconds_per_img, str(eta)
+                        ),
+                        n=5,
+                    )
+                '''
+                metrics_dict = self.model(inputs)
+                losses_dicts.append(metrics_dict)
+                
+            #losses.append(loss_batch)
+            #losses_dicts.append(metrics_dict)
+        #mean_loss = np.mean(losses)
+        self.losses_dicts = losses_dicts
+        
+        
+    @classmethod
+    def build_lr_scheduler(cls, cfg, optimizer):
+        """
+        It now calls :func:`detectron2.solver.build_lr_scheduler`.
+        Overwrite it if you'd like a different scheduler.
+        """
+        return build_lr_scheduler(cfg, optimizer)
+
+    def add_val_loss(self, val_loss):
+        """
+        It now calls :func:`detectron2.solver.build_lr_scheduler`.
+        Overwrite it if you'd like a different scheduler.
+        """
+
+        self.vallossList.append(val_loss)
+
+    def add_val_loss_dict(self, val_loss_dict):
+        """
+        It now calls :func:`detectron2.solver.build_lr_scheduler`.
+        Overwrite it if you'd like a different scheduler.
+        """
+
+        self.vallossdict_epochs[str(self.iterCount)] = val_loss_dict
 
 
 def return_lazy_trainer(model, loader, optimizer, cfg, hooklist):

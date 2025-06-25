@@ -356,16 +356,16 @@ def run_scarlet(
         print("Modeling as extended sources")
         for k, src in enumerate(catalog):
     
-    # Fit scarlet blend
-    starlet_blend, logL = fit_scarlet_blend(
-        starlet_sources,
-        observation,
-        catalog,
-        max_iters=max_iters,
-        plot_likelihood=plot_likelihood,
-        savefigs=savefigs,
-        figpath=figpath,
-    )
+            # Fit scarlet blend
+            starlet_blend, logL = fit_scarlet_blend(
+                starlet_sources,
+                observation,
+                catalog,
+                max_iters=max_iters,
+                plot_likelihood=plot_likelihood,
+                savefigs=savefigs,
+                figpath=figpath,
+            )
 
         
     print(time.time() - t0)

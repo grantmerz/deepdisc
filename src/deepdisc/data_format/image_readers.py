@@ -246,7 +246,7 @@ class wlHSCImageReader(ImageReader):
         return image.astype('float32')
 
 
-class DC2ImageReader(ImageReader):
+class NumpyImageReader(ImageReader):
     """An ImageReader for DC2 image files."""
 
     def __init__(self, *args, **kwargs):
@@ -271,6 +271,7 @@ class DC2ImageReader(ImageReader):
         fn = os.path.join(base, file) + ".npy"
         image = np.load(fn)
         image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32)
+<<<<<<< HEAD
         return image
 
 class HSCImageReader(ImageReader):
@@ -332,3 +333,6 @@ class RomanImageReader(ImageReader):
         image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32) # (512, 512, 4)
         return image
 
+=======
+        return image
+>>>>>>> upstream/main

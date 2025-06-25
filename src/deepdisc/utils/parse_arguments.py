@@ -89,17 +89,10 @@ Run on multiple machines:
     )
     run_args.add_argument("--config-file", default="", metavar="FILE", help="path to config file")
     run_args.add_argument(
-        "--train-metadata",
+        "--data-dir",
         type=str,
         default="/home/shared/hsc/HSC/HSC_DR3/data/",
-        help="path to training data",
-    )
-    
-    run_args.add_argument(
-        "--eval-metadata",
-        type=str,
-        default="/home/shared/hsc/HSC/HSC_DR3/data/",
-        help="path to eval data",
+        help="directory with data",
     )
 
     run_args.add_argument("--eval-only", action="store_true", help="perform evaluation only")
@@ -117,6 +110,9 @@ Run on multiple machines:
     )
     run_args.add_argument("--run-name", type=str, default="Swin_test", help="output name for run")
     
+    # To differentiate the kind of run 
+    run_args.add_argument("--use-dc2", default=False, action="store_true")
+    run_args.add_argument("--use-redshift", default=False, action="store_true")
 
     # Add arguments for the machine specifications
     machine_args = parser.add_argument_group("Machine arguments")
@@ -217,8 +213,8 @@ def make_pretrain_arg_parser():
     parser.add_argument("--config", type=str, help="path to config file")
     parser.add_argument("--output-dir", type=str, metavar="DIRECTORY", help="output directory for informer model")
     parser.add_argument("--run-name", type=str, help="name of the run, used as a regex in the saved model")
-    parser.add_argument("--trainfile", type=str, help='path to the training file of images')
-    parser.add_argument("--eval_metadata", type=str, help='path to the valdata file for images')
+    parser.add_argument("--trainfile", type=str, help='path to the training set file of images')
+    parser.add_argument("--evalfile", type=str, help='path to the evaluation set file of images')
     parser.add_argument("--batch-size", default=2, type=int, help='batch size for training')
     parser.add_argument("--num-gpus", default=2, type=int, help='number of gpus for parallel training')
     

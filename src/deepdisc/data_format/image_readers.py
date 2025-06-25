@@ -246,7 +246,7 @@ class wlHSCImageReader(ImageReader):
         return image.astype('float32')
 
 
-class DC2ImageReader(ImageReader):
+class NumpyImageReader(ImageReader):
     """An ImageReader for DC2 image files."""
 
     def __init__(self, *args, **kwargs):
@@ -272,63 +272,3 @@ class DC2ImageReader(ImageReader):
         image = np.load(fn)
         image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32)
         return image
-
-class HSCImageReader(ImageReader):
-    """An ImageReader for HSC image files."""
-
-    def __init__(self, *args, **kwargs):
-        # Pass arguments to the parent function.
-        super().__init__(*args, **kwargs)
-
-    def _read_image(self, filenames):
-        """Read the image.
-
-        Parameters
-        ----------
-        filenames : list
-            A length 3 list of filenames for the I, R, and G images.
-
-        Returns
-        -------
-        im : numpy array
-            The image.
-        """
-        if len(filenames) != 3:
-            raise ValueError("Incorrect number of filenames passed.")
-
-        g = fits.getdata(os.path.join(filenames[0]), memmap=False)
-        length, width = g.shape
-        image = np.empty([length, width, 3])
-        r = fits.getdata(os.path.join(filenames[1]), memmap=False)
-        i = fits.getdata(os.path.join(filenames[2]), memmap=False)
-
-        image[:, :, 0] = i
-        image[:, :, 1] = r
-        image[:, :, 2] = g
-        return image
-
-
-class RomanImageReader(ImageReader):
-    """An ImageReader for Roman image files."""
-
-    def __init__(self, *args, **kwargs):
-        # Pass arguments to the parent function.
-        super().__init__(*args, **kwargs)
-
-    def _read_image(self, filename):
-        """Read the image.
-
-        Parameters
-        ----------
-        filename : str
-            The filename indicating the image to read.
-
-        Returns
-        -------
-        im : numpy array
-            The image.
-        """
-        image = np.load(filename) # (4, 512, 512)
-        image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32) # (512, 512, 4)
-        return image
-

@@ -231,4 +231,6 @@ def run_batched_get_object_coords(dataloader, predictor, oclass=True, gmm=False)
         return zpreds, all_ras, all_decs, oclasses, gmms, scores
     
     else:
+
         return zpreds, all_ras, all_decs, oclasses, scores
+

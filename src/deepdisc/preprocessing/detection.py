@@ -303,6 +303,10 @@ def run_scarlet(
 
     else:
         wavecat=False
+        catalog_, bg_rms_hsc = make_catalog(datas, lvl, wave=True)
+        Rs = np.sqrt(catalog_["a"] ** 2 + catalog_["b"] ** 2)
+        spread = Rs / sigma_obs
+        print(spread)
         print("Source catalog has ", len(catalog), "objects")
 
         chi2s = np.zeros(len(catalog))
@@ -335,13 +339,14 @@ def run_scarlet(
 
     t0 = time.time()
 
+
     starlet_sources, skipped = scarlet.initialization.init_all_sources(
         model_frame,
         centers,
         observation,
-        max_components=2,
+        max_components=5,
         thresh=morph_thresh,
-        fallback=True,
+        fallback=False,
         silent=True,
         set_spectra=False,
     )
@@ -350,33 +355,17 @@ def run_scarlet(
         
         print("Modeling as extended sources")
         for k, src in enumerate(catalog):
-
-            # Is the source compact relative to the PSF?
-            if spread[k] < 1:
-                compact = True
-            else:
-                compact = False
-
-            # Try modeling each source as a single ExtendedSource first
-            new_source = scarlet.ExtendedSource(model_frame, (src['y'], src['x']), observation,
-                                                K=1, thresh=morph_thresh, compact=compact)
-
-
-            starlet_sources.append(new_source)
     
-    
-    print(starlet_sources)
-    
-    # Fit scarlet blend
-    starlet_blend, logL = fit_scarlet_blend(
-        starlet_sources,
-        observation,
-        catalog,
-        max_iters=max_iters,
-        plot_likelihood=plot_likelihood,
-        savefigs=savefigs,
-        figpath=figpath,
-    )
+            # Fit scarlet blend
+            starlet_blend, logL = fit_scarlet_blend(
+                starlet_sources,
+                observation,
+                catalog,
+                max_iters=max_iters,
+                plot_likelihood=plot_likelihood,
+                savefigs=savefigs,
+                figpath=figpath,
+            )
 
         
     print(time.time() - t0)
@@ -486,9 +475,6 @@ def run_scarlet(
             #catalog_deblended,
             segmentation_masks,
         )
-
-
-
 
 
 

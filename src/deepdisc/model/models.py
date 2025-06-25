@@ -47,4 +47,3 @@ def return_lazy_model(cfg, freeze=True):
     model = create_ddp_model(model, **cfg.train.ddp)
 
     return model
-

@@ -30,12 +30,14 @@ def annotate_dc2(images, mask, idx, filters):
         # ellipse_pars = [hdu.header["ELL_PARM"] for hdu in hdul]
         bbox = [list(map(int, hdu.header["BBOX"].split(","))) for hdu in hdul]
         area = [hdu.header["AREA"] for hdu in hdul]
+        shear_1 = [hdu.header["shear_1"] for hdu in hdul]
+        shear_2 = [hdu.header["shear_2"] for hdu in hdul]
+        convergence = [hdu.header["kappa"] for hdu in hdul]
         # imags = [hdu.header["IMAG"] for hdu in hdul]
         # oids = [hdu.header["hsc_oid"] for hdu in hdul]
         redshifts = [hdu.header["redshift"] for hdu in hdul]
         obj_ids = [hdu.header["objid"] for hdu in hdul]
         mag_is = [hdu.header["mag_i"] for hdu in hdul]
-
     bn = os.path.basename(images[FILT_INX])
     tract = int(bn.split("_")[1])
     patch = bn.split('_')[2]
@@ -87,6 +89,13 @@ def annotate_dc2(images, mask, idx, filters):
             "redshift": redshifts[i],
             "obj_id": obj_ids[i],
             "mag_i": mag_is[i],
+            "shear_1": shear_1[i],
+            "shear_2": shear_2[i],
+            "convergence": convergence[i],
+            "et_1": et_1[i],
+            "et_2": et_2[i],
+            "size_1": size_1[i]
+            #"psfs": psfs[:,i],
         }
 
         objs.append(obj)
@@ -94,6 +103,8 @@ def annotate_dc2(images, mask, idx, filters):
     record["annotations"] = objs
 
     return record
+
+
 
 
 def annotate_dc2_wcs(images, mask, idx, filters):

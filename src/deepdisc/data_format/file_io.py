@@ -70,8 +70,8 @@ class DDLoader:
 
         # Glob in filenames from the paths
         if subdirs:
-            imgs = sorted(glob.glob(os.path.join(dirpath, "*", img_files)))
-            masks = sorted(glob.glob(os.path.join(dirpath, "*", mask_files)))
+            imgs = sorted(glob.glob(os.path.join(dirpath, "*","*","*", img_files)))
+            masks = sorted(glob.glob(os.path.join(dirpath, "*","*","*", mask_files)))
         else:
             imgs = sorted(glob.glob(os.path.join(dirpath, img_files)))
             masks = sorted(glob.glob(os.path.join(dirpath, mask_files)))
@@ -80,17 +80,15 @@ class DDLoader:
         # Requires good assignment of the img_files and filt_loc parameters
         for filt in filenames_dict["filters"]:
             filenames_dict[filt] = {}
-
             if n_samples:
-                filenames_dict[filt]["img"] = [f for f in imgs if ntpath.basename(f)[filt_loc] == filt][
+                filenames_dict[filt]["img"] = [f for f in imgs if ntpath.basename(f)[(filt_loc-len(filt)+1):(filt_loc+1)] == filt][
                     0:n_samples
                 ]
             else:
                 filenames_dict[filt]["img"] = [f for f in imgs if ntpath.basename(f)[filt_loc] == filt]
-
         # confirm (or raise exception) that all filters have the same number of files
         self._verify_input_file_count(filenames_dict)
-
+        print(len(masks))
         if n_samples:
             masks = masks[0:n_samples]
         filenames_dict["mask"] = masks

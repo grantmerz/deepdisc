@@ -8,6 +8,20 @@ from detectron2.data import detection_utils as utils
 
 import deepdisc.astrodet.astrodet as toolkit
 import deepdisc.astrodet.detectron as detectron_addons
+from astropy.wcs import WCS
+import h5py
+from torch.utils.data import DataLoader, Dataset
+import torch.utils.data as torchdata
+from detectron2.data.samplers import TrainingSampler
+#from detectron2.data.common ToIterableDataset
+
+def trans_shape(instances, transforms):
+    for t in transforms:
+        try:
+            instances = t.apply_rotation(instances)
+        except:
+            continue
+    return instances
 
 
 class DataMapper:
@@ -128,3 +142,31 @@ def return_test_loader(cfg, mapper):
     """
     loader = data.build_detection_test_loader(cfg, cfg.DATASETS.TEST, mapper=mapper)
     return loader
+
+
+def return_custom_train_loader(dataset,batch_size=4, distributed=False):
+    
+    if distributed:
+        datasetI = ToIterableDataset(dataset, sampler, shard_chunk_size=batch_size)
+        
+        loader = torchdata.DataLoader(
+                    dataset,
+                    batch_size=batch_size,
+                    drop_last=True,
+                    num_workers=0,
+                    #worker_init_fn=worker_init_reset_seed,
+                    #prefetch_factor=prefetch_factor if num_workers > 0 else None,
+                    persistent_workers=False,
+                    pin_memory=True,
+                    sampler=torchdata.distributed.DistributedSampler(dataset,shuffle=True)
+                )
+    
+    else:
+        loader = torchdata.DataLoader(
+                dataset,
+                batch_size=batch_size,
+                shuffle=True
+            )
+
+    return loader
+

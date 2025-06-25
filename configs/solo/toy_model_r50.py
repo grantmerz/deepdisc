@@ -19,11 +19,39 @@ from ..common.models.mask_rcnn_fpn import model
 #from deepdisc.data_format.image_readers import DC2ImageReader
 
 
+# arguments that don't exist for Cascade R-CNN
+[model.roi_heads.pop(k) for k in ["box_head", "box_predictor", "proposal_matcher"]]
+
+model.roi_heads.update(
+    _target_=CascadeROIHeads,
+    box_heads=[
+        L(FastRCNNConvFCHead)(
+            input_shape=ShapeSpec(channels=256, height=7, width=7),
+            conv_dims=[],
+            fc_dims=[1024, 1024],
+        )
+        for k in range(3)
+    ],
+    box_predictors=[
+        L(FastRCNNOutputLayers)(
+            input_shape=ShapeSpec(channels=1024),
+            test_score_thresh=0.05,
+            box2box_transform=L(Box2BoxTransform)(weights=(w1, w1, w2, w2)),
+            cls_agnostic_bbox_reg=True,
+            num_classes="${...num_classes}",
+        )
+        for (w1, w2) in [(10, 5), (20, 10), (30, 15)]
+    ],
+    proposal_matchers=[
+        L(Matcher)(thresholds=[th], labels=[0, 1], allow_low_quality_matches=False)
+        for th in [0.5, 0.6, 0.7]
+    ],
+)
+
 # ---------------------------------------------------------------------------- #
 # Local variables and metadata
 # ---------------------------------------------------------------------------- #
 bs = 1
-
 
 metadata = OmegaConf.create() 
 metadata.classes = ["object"]
@@ -34,23 +62,24 @@ numclasses = len(metadata.classes)
 #dataloader.augs = dc2_train_augs
 dataloader.train.total_batch_size = bs
 
-model.proposal_generator.anchor_generator.sizes = [[8], [16], [32], [64], [128]]
+model.backbone.bottom_up.stem.norm="BN"
+model.backbone.bottom_up.stages.norm="BN"
 
-#This is the number of color channels in the images
-model.backbone.bottom_up.in_channels = 6
-#model.pixel_mean = [0,0,0,0,0,0]
-#model.pixel_std = [1,1,1,1,1,1]
+model.proposal_generator.anchor_generator.sizes = [[8], [16], [32], [64], [128]]
+model.roi_heads.num_classes = numclasses
+model.roi_heads.batch_size_per_image = 512
 
 model.roi_heads.num_classes = numclasses
 model.roi_heads.batch_size_per_image = 512
 model.proposal_generator.post_nms_topk=[6000,1000]
-model.roi_heads.box_predictor.test_topk_per_image = 500
-model.roi_heads.box_predictor.test_score_thresh = 0.3
-model.roi_heads.box_predictor.test_nms_thresh = 0.5
+for box_predictor in model.roi_heads.box_predictors:
+    box_predictor.test_topk_per_image = 3000
+    box_predictor.test_score_thresh = 0.3
+    box_predictor.test_nms_thresh = 0.5
    
 
 #train.init_checkpoint = "detectron2://ImageNetPretrained/MSRA/R-50.pkl" 
-#train.init_checkpoint = '/home/g4merz/DC2/model_tests/zoobot/zoobot_GZ2_resnet50_d2.pkl'
+train.init_checkpoint = '/home/g4merz/DC2/model_tests/zoobot/zoobot_GZ2_resnet50_d2.pkl'
 
 optimizer.lr = 0.001
 #dataloader.test.mapper = loaders.Dictmapper

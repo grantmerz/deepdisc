@@ -380,6 +380,34 @@ class CustomAug(Augmentation):
             return (
                 T.NoOpTransform()
             )  # it returns a Transform which just returns the original Image array only
+        
+
+class ShapeAug(Augmentation):
+    """
+    Given a probability and a custom function, return a GenericWrapperTransform object whose `apply_image`
+    will be called to perform augmentation
+    """
+
+    def __init__(self, custom_function, prob=1.0):
+        """
+        Args:
+            custom_op: Operation to use. Must be a function takes an ndarray and returns an ndarray
+            prob (float): probability of applying the function
+        """
+        super().__init__()
+        self._init(locals())
+
+    def get_transform(self, image, instances):
+        """
+        Based on probability, choose whether you want to apply the given function or not
+        """
+        do = self._rand_range() < self.prob
+        if do:
+            return GenericWrapperTransform(self.custom_function)
+        else:
+            return (
+                T.NoOpTransform()
+            )  # it returns a Transform which just returns the original Image array only
 
 
 class KRandomAugmentationList(Augmentation):

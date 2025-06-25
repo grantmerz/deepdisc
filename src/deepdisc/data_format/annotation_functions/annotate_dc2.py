@@ -38,20 +38,6 @@ def annotate_dc2(images, mask, idx, filters):
         redshifts = [hdu.header["redshift"] for hdu in hdul]
         obj_ids = [hdu.header["objid"] for hdu in hdul]
         mag_is = [hdu.header["mag_i"] for hdu in hdul]
-'''     
-        et_1 = [hdu.header["et_1"] for hdu in hdul]
-        et_2 = [hdu.header["et_2"] for hdu in hdul]
-        size_1 = [hdu.header["size_1"] for hdu in hdul]
-        #psfs = np.array([[hdu.header[f'psf_{i}'] for hdu in hdul] for i in range(18)])
-        
-    catalog = images[FILT_INX].split(os.sep)[-6]
-    catagory = images[FILT_INX].split(os.sep)[-5]
-    tract = images[FILT_INX].split(os.sep)[-4]
-    patch = images[FILT_INX].split(os.sep)[-3]
-    sp = images[FILT_INX].split(os.sep)[-2]
-    record[f"filename"] = f"/home/wenyinli/wl_deepdisc/datasets/{catalog}/{catagory}/{tract}/{patch}/{sp}/image"
-    '''
-
     bn = os.path.basename(images[FILT_INX])
     tract = int(bn.split("_")[1])
     patch = bn.split('_')[2]

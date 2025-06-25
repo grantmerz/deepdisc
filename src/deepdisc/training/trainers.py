@@ -62,7 +62,7 @@ class LazyAstroTrainer(SimpleTrainer):
              for k, v in loss_dict.items()
         }
 
-        self.lossdict_epochs[str(self.iterCount)] = ld
+        self.lossdict_epochs[str(self.iter+1)] = ld
 
         # print('Loss dict',loss_dict)
         if isinstance(loss_dict, torch.Tensor):
@@ -79,11 +79,11 @@ class LazyAstroTrainer(SimpleTrainer):
         self.optimizer.step()
 
         self.lossList.append(losses.cpu().detach().numpy())
-        if self.iterCount % self.period == 0 and comm.is_main_process():
+        if self.iter % self.period == 0 and comm.is_main_process():
             # print("Iteration: ", self.iterCount, " time: ", data_time," loss: ",losses.cpu().detach().numpy(), "val loss: ",self.valloss, "lr: ", self.scheduler.get_lr())
             print(
                 "Iteration: ",
-                self.iterCount,
+                self.iter,
                 " data time: ",
                 data_time,
                 " loss time: ",
@@ -122,7 +122,7 @@ class LazyAstroTrainer(SimpleTrainer):
         Overwrite it if you'd like a different scheduler.
         """
 
-        self.vallossdict_epochs[str(self.iterCount)] = val_loss_dict
+        self.vallossdict_epochs[str(self.iter+1)] = val_loss_dict
 
 
 class LazyAstroEvaluator(SimpleTrainer):

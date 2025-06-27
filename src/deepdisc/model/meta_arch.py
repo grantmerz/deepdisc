@@ -238,6 +238,8 @@ class GeneralizedRCNNWCS(nn.Module):
             self.backbone.size_divisibility,
             padding_constraints=self.backbone.padding_constraints,
         )
+
+        #print(images[0].size())
         return images
 
     @staticmethod

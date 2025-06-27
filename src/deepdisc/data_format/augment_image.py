@@ -258,20 +258,16 @@ def dc2_train_augs(image):
     augs: detectron_addons.KRandomAugmentationList
         The list of augs for training.  Set to RandomRotation, RandomFlip, RandomCrop
     """
-    #T.VFlipTransform.apply_rotation = flip_e
-    #T.HFlipTransform.apply_rotation = flip_e
-    #T.RotationTransform.apply_rotation = rotate_e
 
     augs = detectron_addons.KRandomAugmentationList(
         [
             # my custom augs
-            T.RandomRotation([45, -45, 0], sample_style="choice"),
             T.RandomRotation([0, 180, -90, 90], sample_style="choice"),
             T.RandomFlip(prob=0.5),
             T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
             #detectron_addons.CustomAug(multiband_gaussblur,prob=0.5),
         ],
-        k= None,
+        k= -1,
         cropaug=None,
         #cropaug=T.RandomCrop("relative", (0.5, 0.5))
     )

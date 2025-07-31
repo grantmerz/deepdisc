@@ -5,6 +5,9 @@ import numpy as np
 import sep
 import matplotlib.pyplot as plt
 import time
+from matplotlib.patches import Ellipse
+from astropy.stats import sigma_clipped_stats
+
 
 def mad_wavelet_own(image):
     """image: Median absolute deviation of the first wavelet scale.
@@ -282,6 +285,8 @@ def run_scarlet(
     # Define model frame and observations:
     model_psf = scarlet.GaussianPSF(sigma=sigma_model)  # , boxsize=100)
     model_frame = scarlet.Frame(datas.shape, psf=model_psf, channels=filters)
+    
+    spread=None
 
     if catalog is None:
         wavecat=True
@@ -303,17 +308,19 @@ def run_scarlet(
 
     else:
         wavecat=False
-        catalog_, bg_rms_hsc = make_catalog(datas, lvl, wave=True)
-        Rs = np.sqrt(catalog_["a"] ** 2 + catalog_["b"] ** 2)
-        spread = Rs / sigma_obs
-        print(spread)
+        #catalog_, bg_rms_hsc = make_catalog(datas, lvl, wave=True)
+        #Rs = np.sqrt(catalog_["a"] ** 2 + catalog_["b"] ** 2)
+        #spread = Rs / sigma_obs
+        #print(spread)
         print("Source catalog has ", len(catalog), "objects")
 
         chi2s = np.zeros(len(catalog))
         centers = [
-            (catalog.iloc[i]["new_y"], catalog.iloc[i]["new_x"])
+            (catalog.iloc[i]["y"], catalog.iloc[i]["x"])
             for i in range(len(catalog))
         ]
+        
+        print(centers)
 
     # Plot wavelet transform at different scales
     if plot_wavelet == True:
@@ -353,19 +360,41 @@ def run_scarlet(
 
     if len(starlet_sources)==0:
         
-        print("Modeling as extended sources")
-        for k, src in enumerate(catalog):
-    
-            # Fit scarlet blend
-            starlet_blend, logL = fit_scarlet_blend(
-                starlet_sources,
-                observation,
-                catalog,
-                max_iters=max_iters,
-                plot_likelihood=plot_likelihood,
-                savefigs=savefigs,
-                figpath=figpath,
-            )
+        if spread is not None:
+            print("Modeling as extended sources")
+            for k, src in enumerate(catalog):
+
+                # Is the source compact relative to the PSF?
+                if spread[k] < 1:
+                    compact = True
+                else:
+                    compact = False
+
+                # Try modeling each source as a single ExtendedSource first
+                new_source = scarlet.ExtendedSource(model_frame, (src['y'], src['x']), observation,
+                                                    K=1, thresh=morph_thresh, compact=compact)
+
+
+                starlet_sources.append(new_source)
+
+                
+        else:
+            for k in range(len(catalog)):
+                # Try modeling each source as a single ExtendedSource first
+                new_source = scarlet.ExtendedSource(model_frame, (centers[k][0], centers[k][1]), observation,
+                                                    K=1, thresh=morph_thresh, compact=False)
+                starlet_sources.append(new_source)
+
+    # Fit scarlet blend
+    starlet_blend, logL = fit_scarlet_blend(
+        starlet_sources,
+        observation,
+        catalog,
+        max_iters=max_iters,
+        plot_likelihood=plot_likelihood,
+        savefigs=savefigs,
+        figpath=figpath,
+    )
 
         
     print(time.time() - t0)
@@ -381,7 +410,9 @@ def run_scarlet(
         model = observation.render(model)
         # Compute in bbox only
         model = src.bbox.extract_from(model)
-        bkgmod = sep.Background(np.sum(model, axis=0))
+        bkgmod = sep.Background(np.sum(datas, axis=0))
+        std = sigma_clipped_stats(datas)[2]
+
         
         # Run sep
         if return_models:
@@ -418,7 +449,9 @@ def run_scarlet(
             # For some reason sep doesn't like these images, so do the segmask ourselves for now
             model_det = np.sum(model, axis=0)
             mask = np.zeros_like(model_det)
-            mask[model_det > lvl_segmask * bkgmod.globalrms] = 1
+            #mask[model_det > lvl_segmask * bkgmod.globalrms] = 1
+            mask[model_det > lvl_segmask * std] = 1
+
             segmentation_masks.append(mask)
             # plt.imshow(mask)
             # plt.show()
@@ -562,7 +595,7 @@ def _plot_scene(
                 for i in range(len(catalog)):
                     obj = catalog.iloc[i]
                     # See https://sextractor.readthedocs.io/en/latest/Position.html
-                    e = Ellipse(xy=(obj["new_x"], obj["new_y"]), width=10, height=10, angle=0)
+                    e = Ellipse(xy=(obj["x"], obj["y"]), width=10, height=10, angle=0)
 
                     e.set_facecolor("none")
                     e.set_edgecolor("white")

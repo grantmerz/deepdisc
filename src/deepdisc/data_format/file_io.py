@@ -88,7 +88,6 @@ class DDLoader:
                 filenames_dict[filt]["img"] = [f for f in imgs if ntpath.basename(f)[filt_loc] == filt]
         # confirm (or raise exception) that all filters have the same number of files
         self._verify_input_file_count(filenames_dict)
-        print(len(masks))
         if n_samples:
             masks = masks[0:n_samples]
         filenames_dict["mask"] = masks

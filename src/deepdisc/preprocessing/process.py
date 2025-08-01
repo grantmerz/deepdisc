@@ -184,6 +184,7 @@ def write_scarlet_results_nomodels(
     filters,
     s,
     catalog=None,
+    keys=None,
 ):
     """
     Saves images in each channel, with headers for each source in image,
@@ -239,7 +240,7 @@ def write_scarlet_results_nomodels(
         # (x0, y0, w, h) in absolute floating pixel coordinates
         bbox_h = starlet_source.bbox.shape[1]
         bbox_w = starlet_source.bbox.shape[2]
-        bbox_y = starlet_source.bbox.origin[1] + int(np.floor(bbox_w / 2))  # y-coord of the source's center
+        bbox_y = starlet_source.bbox.origin[1] + int(np.floor(bbox_h / 2))  # y-coord of the source's center
         bbox_x = starlet_source.bbox.origin[2] + int(np.floor(bbox_w / 2))  # x-coord of the source's center
 
         
@@ -249,32 +250,17 @@ def write_scarlet_results_nomodels(
         model_hdr["area"] = bbox_w * bbox_h
 
         if source_cat is not None:
-            #catalog_redshift = source_cat["redshift_truth"]
-            #oid = source_cat["objectId"]
-            catalog_redshift = source_cat["redshift"]
-            oid = source_cat["id"]
-            imag = source_cat["mag_i"]
-            shear_1 = source_cat["shear_1"]
-            shear_2 = source_cat["shear_2"]
-            convergence = source_cat["convergence"]
-            et_1 = source_cat["ellipticity_1_true"]
-            et_2 = source_cat["ellipticity_2_true"]
-            size_1 = source_cat["size_true"]
-            
-            if not np.isfinite(imag):
-                imag = -1
+            #catalog_redshift = source_cat["redshift"]
+            #oid = source_cat["id"]
+            #imag = source_cat["mag_i"]
+            #if not np.isfinite(imag):
+            #    imag = -1
             #model_hdr["cat_id"] = source_cat['truth_type']  # Category ID
-            model_hdr["redshift"] = catalog_redshift
-            model_hdr["objid"] = oid
-            model_hdr["mag_i"] = imag
-            model_hdr["shear_1"] = shear_1
-            model_hdr["shear_2"] = shear_2
-            model_hdr["kappa"] = convergence
-            model_hdr["et_1"] = et_1
-            model_hdr["et_2"] = et_2
-            model_hdr["size_1"] = size_1
-            #for psf_i in range(18):
-            #    model_hdr["psf_"+str(psf_i)] = source_cat["psf_"+str(psf_i)]
+            #model_hdr["redshift"] = catalog_redshift
+            #model_hdr["objid"] = oid
+
+            for key in keys:
+                model_hdr[key] = source_cat[key]
 
         return model_hdr
 
@@ -298,7 +284,7 @@ def write_scarlet_results_nomodels(
         # Save list of filenames in dict for each band
         #filenames["img"] = os.path.join(outdir, f"{s}_images.npy")
         #np.save(filenames["img"],datas)
-        filenames[f"img_{f}"] = os.path.join(outdir, f"image_{f}.fits")
+        filenames[f"img_{f}"] = os.path.join(outdir, f"{f}_img_{s}.fits")
         save_img_hdul.writeto(filenames[f"img_{f}"], overwrite=True)
         
         #filenames[f"model_{f}"] = os.path.join(outdir, f"{f}_{s}_scarlet_model.fits")
@@ -327,7 +313,7 @@ def write_scarlet_results_nomodels(
             save_segmask_hdul = fits.HDUList([segmask_primary, *segmask_hdul])
 
             # Save list of filenames in dict for each band
-            filenames["segmask"] = os.path.join(outdir, "masks.fits")
+            filenames["segmask"] = os.path.join(outdir, f"masks_{s}.fits")
             save_segmask_hdul.writeto(filenames["segmask"], overwrite=True)
 
     return filenames

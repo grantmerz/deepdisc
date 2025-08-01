@@ -10,7 +10,7 @@ import os, json, shutil
 import logging
 logger = logging.getLogger(__name__)
 
-def fitsim_to_numpy(img_files, outdir,start_index=0,stop_index=-2):
+def fitsim_to_numpy(img_files, outdir,start_index=0):
     
     """Converts a list of single-band FITS images to multi-band numpy arrays
 
@@ -37,8 +37,11 @@ def fitsim_to_numpy(img_files, outdir,start_index=0,stop_index=-2):
 
         full_im = np.array(full_im)
         
-        
-        np.save(img.split('.fits')[0][start_index:stop_index]+'.npy', full_im)
+
+    
+        bn = os.path.basename(img).split('.fits')[0]
+        fn = os.path.join(os.path.dirname(img), bn[start_index:])+'.npy'
+        np.save(fn, full_im)
 
 
     return

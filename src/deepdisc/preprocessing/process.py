@@ -284,7 +284,7 @@ def write_scarlet_results_nomodels(
         # Save list of filenames in dict for each band
         #filenames["img"] = os.path.join(outdir, f"{s}_images.npy")
         #np.save(filenames["img"],datas)
-        filenames[f"img_{f}"] = os.path.join(outdir, f"img_{s}_{f}.fits")
+        filenames[f"img_{f}"] = os.path.join(outdir, f"{f}_img_{s}.fits")
         save_img_hdul.writeto(filenames[f"img_{f}"], overwrite=True)
         
         #filenames[f"model_{f}"] = os.path.join(outdir, f"{f}_{s}_scarlet_model.fits")

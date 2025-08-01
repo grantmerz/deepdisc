@@ -109,10 +109,7 @@ Run on multiple machines:
         "See documentation of `DefaultTrainer.resume_or_load()` for what it means.",
     )
     run_args.add_argument("--run-name", type=str, default="Swin_test", help="output name for run")
-    
-    # To differentiate the kind of run 
-    run_args.add_argument("--use-dc2", default=False, action="store_true")
-    run_args.add_argument("--use-redshift", default=False, action="store_true")
+    run_args.add_argument("--batch-size", default=2, type=int, help='batch size for training')
 
     # Add arguments for the machine specifications
     machine_args = parser.add_argument_group("Machine arguments")
@@ -125,30 +122,7 @@ Run on multiple machines:
         help="the rank of this machine (unique per machine)",
     )
 
-    # Add arguments for the data normalization and modeling.
-    model_args = parser.add_argument_group("Model configuration arguments")
-    model_args.add_argument("--A", type=float, default=1e3, help="scaling factor for int16")
-    model_args.add_argument("--alphas", type=float, nargs="*", help="weights for focal loss")
-    model_args.add_argument(
-        "--cp",
-        type=float,
-        default=99.99,
-        help="ceiling percentile for saturation cutoff",
-    )
-    model_args.add_argument("--do-fl", action="store_true", help="use focal loss")
-    model_args.add_argument(
-        "--do-norm",
-        action="store_true",
-        help="normalize input image (ignore if lupton)",
-    )
-    model_args.add_argument("--dtype", type=int, default=8, help="data type of array")
-    model_args.add_argument("--modname", type=str, default="swin", help="")
-    model_args.add_argument("--norm", type=str, default="raw", help="contrast scaling")
-    model_args.add_argument("--Q", type=float, default=10, help="lupton Q")
-    model_args.add_argument("--scheme", type=int, default=1, help="classification scheme")
-    model_args.add_argument("--stretch", type=float, default=0.5, help="lupton stretch")
-    model_args.add_argument("--tl", type=int, default=1, help="total size of training set")
-
+    
     # Add a section of advanced arguments.
     adv_args = parser.add_argument_group("Advanced arguments")
 

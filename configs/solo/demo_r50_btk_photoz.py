@@ -38,7 +38,9 @@ numclasses = len(metadata.classes)
 # Overrides
 #dataloader.augs = dc2_train_augs
 dataloader.train.total_batch_size = bs
-
+# for evalutation loss calc
+dataloader.test.total_batch_size = bs * 2 # can usually go a bit higher since no gradients or activations being calculated
+dataloader.test.num_workers = 16 # for faster data loading during evaluation loss calc
 
 model._target_ = meta_arch.GeneralizedRCNNWCS
 

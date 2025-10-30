@@ -5,6 +5,7 @@ import detectron2.data.transforms as T
 import numpy as np
 import torch
 from detectron2.data import detection_utils as utils
+from detectron2.data import get_detection_dataset_dicts
 
 import deepdisc.astrodet.astrodet as toolkit
 import deepdisc.astrodet.detectron as detectron_addons
@@ -125,24 +126,31 @@ def return_train_loader(cfg, mapper):
     loader = data.build_detection_train_loader(cfg, mapper=mapper)
     return loader
 
-
 def return_test_loader(cfg, mapper):
-    """Returns a test loader
+    """Returns a test loader with configurable batch size
 
     Parameters
     ----------
     cfg : LazyConfig
         The lazy config, which contains data loader config values
-
+        including batch size and num_workers
     **kwargs for the read_image functionality
 
     Returns
     -------
         a test loader
     """
-    loader = data.build_detection_test_loader(cfg, cfg.DATASETS.TEST, mapper=mapper)
+    batch_size = getattr(cfg.dataloader.test, 'total_batch_size', 1)
+    num_workers = getattr(cfg.dataloader.test, 'num_workers', 0)
+    dataset = get_detection_dataset_dicts(cfg.DATASETS.TEST)
+    # loader w/ explicit params so we can bypass @configurable for detectron2's build_detection_test_loader()
+    loader = data.build_detection_test_loader(
+        dataset,
+        mapper=mapper,
+        batch_size=batch_size,   
+        num_workers=num_workers, 
+    )
     return loader
-
 
 def return_custom_train_loader(dataset,batch_size=4, distributed=False):
     

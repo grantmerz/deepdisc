@@ -6,9 +6,3 @@ ipython
 jupytext
 jupyter
 matplotlib
-numpy
-torch
-torchvision
-pybind11
-peigen
-mpi4py

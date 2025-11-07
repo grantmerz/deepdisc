@@ -10,20 +10,6 @@ from importlib.metadata import version
 
 import autoapi
 
-# Mock modules that have problematic C++ dependencies
-import sys
-from unittest.mock import MagicMock
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
-
-MOCK_MODULES = ['scarlet', 'scarlet.lite']
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
-
-
 # Define path to the code to be documented **relative to where conf.py (this file) is kept**
 sys.path.insert(0, os.path.abspath("../src/"))
 

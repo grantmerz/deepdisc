@@ -17,9 +17,14 @@ sphinx:
    configuration: docs/conf.py
 
 # Optionally declare the Python requirements required to build your docs
-python:
-   install:
-   - requirements: docs/build-requirements.txt
-   - requirements: docs/requirements.txt
-   - method: pip
-     path: .
+build:
+  jobs:
+    pre_install:
+      # Needed because scarlet requires pybind11 to build
+      - pip install pybind11 wheel
+    
+    install:
+      - pip install -r docs/requirements.txt
+      
+      # install with no builds to ensure pybind11 is used
+      - pip install --no-build-isolation .

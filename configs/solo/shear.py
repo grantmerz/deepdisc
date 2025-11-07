@@ -30,6 +30,9 @@ from deepdisc.model.meta_arch import GeneralizedRCNNWCS
 # Overrides
 dataloader.augs = dc2_train_augs
 dataloader.train.total_batch_size = bs
+# for evalutation loss calc
+dataloader.test.total_batch_size = bs * 2 # can usually go a bit higher since no gradients or activations being calculated
+dataloader.test.num_workers = 16 # for faster data loading during evaluation loss calc
 
 model.proposal_generator.anchor_generator.sizes = [[8], [16], [32], [64], [128]]
 #model.proposal_generator.batch_size_per_image=1024

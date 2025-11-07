@@ -272,3 +272,4 @@ class NumpyImageReader(ImageReader):
         image = np.load(fn)
         image = np.transpose(image, axes=(1, 2, 0)).astype(np.float32)
         return image
+    

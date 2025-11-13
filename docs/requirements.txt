@@ -10,3 +10,4 @@ numpy
 pybind11
 peigen
 mpi4py
+timm

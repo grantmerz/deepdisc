@@ -24,12 +24,9 @@ dependencies = [
     "h5py",
     "mpi4py",
     "astropy",
-    "pybind11",
     "imgaug",
-    "proxmin",
-    "peigen",
     "autograd",
-    "timm",
+    "detectron2@git+https://github.com/facebookresearch/detectron2.git",
     "scarlet@git+https://github.com/pmelchior/scarlet.git",
 ]
 

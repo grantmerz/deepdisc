@@ -25,10 +25,10 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-	sudo apt install libopenmpi-dev
+        sudo apt install libopenmpi-dev
         python -m pip install --upgrade pip
-        pip install .
-        pip install .[dev]
+        pip install . --no-build-isolation
+        pip install .[dev] --no-build-isolation
     - name: Run unit tests with pytest
       run: |
         python -m pytest tests --cov=deepdisc --cov-report=xml

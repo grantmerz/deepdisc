@@ -12,9 +12,8 @@ dependencies:
   - numpy
   - opencv
   - pybind11
-  - pytorch
-  - torchvision
   - pip:
     - autograd
     - peigen
     - proxmin
+    - timm

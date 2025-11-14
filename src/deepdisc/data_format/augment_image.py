@@ -1,12 +1,13 @@
 """Utilities for augmenting image data."""
 
 import detectron2.data.transforms as T
-import imgaug.augmenters as iaa
 import numpy as np
 
 import deepdisc.astrodet.detectron as detectron_addons
 import random
 import copy
+from scipy.ndimage import gaussian_filter
+
 
 LAMBDA_EFFS = [3671,4827,6223,7546,8691,9712]
 A_EBV = np.array([4.81,3.64,2.70,2.06,1.58,1.31])
@@ -53,7 +54,7 @@ def filter_dropout(image):
     else:
         return image_drop
 
-def gaussblur(image, rng_seed=None):
+def gaussblur(image):
     """
     Parameters
     ----------
@@ -66,10 +67,12 @@ def gaussblur(image, rng_seed=None):
     augmented image
 
     """
-    if rng_seed is None:
-        rng_seed = np.random.default_rng()
-    aug = iaa.GaussianBlur(sigma=50, seed=rng_seed)
-    return aug.augment_image(image)
+ 
+    for i in range(image.shape[-1]):
+        image[:, :, i] = gaussian_filter(
+                        image[:, :, i], sigma, mode="mirror")
+
+    return image
 
 
 def scale_psf(sigi, lambda_eff):
@@ -78,7 +81,7 @@ def scale_psf(sigi, lambda_eff):
     return sig_lambda
 
 
-def multiband_gaussblur(image, rng_seed=None):
+def multiband_gaussblur(image):
     """
     Parameters
     ----------
@@ -93,73 +96,12 @@ def multiband_gaussblur(image, rng_seed=None):
     """
     if len(image.shape) == 2:
         image = np.expand_dims(image, axis=-1)
-    if rng_seed is None:
-        rng_seed = np.random.default_rng()
-    imgs = np.zeros(image.shape, dtype=np.float32)
     sigmai = random.random()
     for i in range(image.shape[-1]):
         sigma = scale_psf(sigmai,LAMBDA_EFFS[3])
-        aug = iaa.GaussianBlur(sigma=sigma, seed=rng_seed)
-        imaug = aug.augment_image(image[:,:,i])
-        imgs[:,:,i] = imaug
+        image[:, :, i] = gaussian_filter(
+                image[:, :, i], sigma, mode="mirror")
     return imgs
-
-def addelementwise16(image, rng_seed=None):
-    """
-    Parameters
-    ----------
-    image: ndarray
-    rng_seed : np.random.Generator
-        Random state that is seeded. if none, use machine entropy.
-
-    Returns
-    -------
-    augmented image
-
-    """
-    if rng_seed is None:
-        rng_seed = np.random.default_rng()
-    aug = iaa.AddElementwise((-3276, 3276), seed=rng_seed)
-    return aug.augment_image(image)
-
-
-def addelementwise8(image, rng_seed=None):
-    """
-    Parameters
-    ----------
-    image: ndarray
-    rng_seed : np.random.Generator
-        Random state that is seeded. if none, use machine entropy.
-
-    Returns
-    -------
-    augmented image
-
-    """
-    if rng_seed is None:
-        rng_seed = np.random.default_rng()
-    aug = iaa.AddElementwise((-25, 25), seed=rng_seed)
-    return aug.augment_image(image)
-
-
-def addelementwise(image, rng_seed=None):
-    """
-    Parameters
-    ----------
-    image: ndarray
-    rng_seed : np.random.Generator
-        Random state that is seeded. if none, use machine entropy.
-
-    Returns
-    -------
-    augmented image
-
-    """
-    if rng_seed is None:
-        rng_seed = np.random.default_rng()
-    aug = iaa.AddElementwise((-image.max() * 0.1, image.max() * 0.1), seed=rng_seed)
-    return aug.augment_image(image)
-
 
 
 def dc2_train_augs(image):
@@ -189,4 +131,3 @@ def dc2_train_augs(image):
         #cropaug=T.RandomCrop("relative", (0.5, 0.5))
     )
     return augs
-

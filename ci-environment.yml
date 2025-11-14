@@ -5,10 +5,9 @@ channels:
   - defaults
 
 dependencies:
-  - python=3.9
+  - python=3.10
   - astropy
   - ipykernel
-  - imgaug
   - numpy
   - opencv
   - pybind11

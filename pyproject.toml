@@ -17,14 +17,13 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "numpy<2.0",
+    "numpy>2.0",
     "scipy",
     "pandas",
     "grpcio",
     "h5py",
     "mpi4py",
-    "astropy",
-    "imgaug",
+    "astropy>=6.1.0",
     "autograd",
     "detectron2@git+https://github.com/facebookresearch/detectron2.git",
     "scarlet@git+https://github.com/pmelchior/scarlet.git",

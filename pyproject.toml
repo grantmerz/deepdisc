@@ -24,7 +24,6 @@ dependencies = [
     "h5py",
     "mpi4py",
     "astropy>=6.1.0",
-    "imgaug",
     "autograd",
     "detectron2@git+https://github.com/facebookresearch/detectron2.git",
     "scarlet@git+https://github.com/pmelchior/scarlet.git",

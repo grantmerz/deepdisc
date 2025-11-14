@@ -23,7 +23,7 @@ dependencies = [
     "grpcio",
     "h5py",
     "mpi4py",
-    "astropy",
+    "astropy>6.1",
     "imgaug",
     "autograd",
     "detectron2@git+https://github.com/facebookresearch/detectron2.git",

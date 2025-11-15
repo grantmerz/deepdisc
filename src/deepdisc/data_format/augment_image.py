@@ -16,12 +16,13 @@ A_EBV = np.array([4.81,3.64,2.70,2.06,1.58,1.31])
 
 def redden(image, rng_seed=None):
     """
+
+    Redden the image based off of A_E(B-V) values
+
     Parameters
     ----------
-    image: ndarray
-    rng_seed : np.random.Generator
-        Random state that is seeded. if none, use machine entropy.
-
+    image: ndarray HxWxC
+    
     Returns
     -------
     augmented image
@@ -32,15 +33,15 @@ def redden(image, rng_seed=None):
     return image
 
 
-
 def filter_dropout(image):
     """
+
+    Randomly drop out a filter
+
     Parameters
     ----------
-    image: ndarray
-    rng_seed : np.random.Generator
-        Random state that is seeded. if none, use machine entropy.
-
+    image: ndarray HxWxC
+    
     Returns
     -------
     augmented image
@@ -56,18 +57,22 @@ def filter_dropout(image):
 
 def gaussblur(image):
     """
+
+    Convolve with a gaussian filter to mimic psf blurring
+    Assumes constant (achromatic) psf 
+
     Parameters
     ----------
     image: ndarray
-    rng_seed : np.random.Generator
-        Random state that is seeded. if none, use machine entropy.
-
+    
     Returns
     -------
     augmented image
 
     """
  
+    sigma = np.random.random()
+
     for i in range(image.shape[-1]):
         image[:, :, i] = gaussian_filter(
                         image[:, :, i], sigma, mode="mirror")
@@ -83,12 +88,14 @@ def scale_psf(sigi, lambda_eff):
 
 def multiband_gaussblur(image):
     """
+
+    Convolve with a gaussian filter to mimic psf blurring
+    PSF size changes across filters based on the scale_psf function 
+    
     Parameters
     ----------
     image: ndarray
-    rng_seed : np.random.Generator
-        Random state that is seeded. if none, use machine entropy.
-
+   
     Returns
     -------
     augmented image
@@ -101,7 +108,7 @@ def multiband_gaussblur(image):
         sigma = scale_psf(sigmai,LAMBDA_EFFS[3])
         image[:, :, i] = gaussian_filter(
                 image[:, :, i], sigma, mode="mirror")
-    return imgs
+    return image
 
 
 def dc2_train_augs(image):

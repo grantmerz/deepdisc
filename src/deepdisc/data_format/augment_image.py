@@ -3,7 +3,6 @@
 import detectron2.data.transforms as T
 import numpy as np
 import deepdisc.astrodet.detectron as detectron_addons
-import copy
 from scipy.ndimage import gaussian_filter
 
 

@@ -17,7 +17,6 @@ from typing import Dict, List, Optional, Tuple
 import detectron2.data as data
 import detectron2.data.transforms as T
 
-import matplotlib.pyplot as plt
 import torch
 from detectron2.data import build_detection_train_loader
 from detectron2.data.transforms import Augmentation, Transform

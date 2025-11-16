@@ -2,9 +2,7 @@
 
 import detectron2.data.transforms as T
 import numpy as np
-
 import deepdisc.astrodet.detectron as detectron_addons
-import random
 import copy
 from scipy.ndimage import gaussian_filter
 
@@ -28,34 +26,16 @@ def redden(image, rng_seed=None):
     augmented image
 
     """
-    new_ebv = np.random.uniform(0, 0.1)
+
+    if rng_seed is None:
+        rng_seed = np.random.default_rng()
+
+    new_ebv = rng_seed.uniform(0, 0.1)
     image = np.float32(image*(10.**(-A_EBV*new_ebv/2.5)))
     return image
 
 
-def filter_dropout(image):
-    """
-
-    Randomly drop out a filter
-
-    Parameters
-    ----------
-    image: ndarray HxWxC
-    
-    Returns
-    -------
-    augmented image
-
-    """
-    image_drop = copy.copy(image)
-    filt = np.random.choice(np.arange(0,image.shape[-1]))
-    image_drop[:,:,filt] = np.zeros(image.shape[:-1])
-    if np.all(image_drop==0):
-        return image
-    else:
-        return image_drop
-
-def gaussblur(image):
+def gaussblur(image,rng_seed=None):
     """
 
     Convolve with a gaussian filter to mimic psf blurring
@@ -71,7 +51,10 @@ def gaussblur(image):
 
     """
  
-    sigma = np.random.random()
+    if rng_seed is None:
+        rng_seed = np.random.default_rng()
+
+    sigma = rng_seed.random()
 
     for i in range(image.shape[-1]):
         image[:, :, i] = gaussian_filter(
@@ -82,11 +65,11 @@ def gaussblur(image):
 
 def scale_psf(sigi, lambda_eff):
     i_eff = 7546
-    sig_lambda = sigi* (lambda_eff)**(-0.3)/(i_eff**(-0.3))
+    sig_lambda = sigi* (lambda_eff)**(-0.2)/(i_eff**(-0.2))
     return sig_lambda
 
 
-def multiband_gaussblur(image):
+def multiband_gaussblur(image,rng_seed=None):
     """
 
     Convolve with a gaussian filter to mimic psf blurring
@@ -101,11 +84,15 @@ def multiband_gaussblur(image):
     augmented image
 
     """
+
+    if rng_seed is None:
+        rng_seed = np.random.default_rng()
+
     if len(image.shape) == 2:
         image = np.expand_dims(image, axis=-1)
-    sigmai = random.random()
+    sigmai = rng_seed.random()
     for i in range(image.shape[-1]):
-        sigma = scale_psf(sigmai,LAMBDA_EFFS[3])
+        sigma = scale_psf(sigmai,LAMBDA_EFFS[i])
         image[:, :, i] = gaussian_filter(
                 image[:, :, i], sigma, mode="mirror")
     return image

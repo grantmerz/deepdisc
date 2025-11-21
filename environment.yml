@@ -1,12 +1,16 @@
 name: deepdiscnv
 channels:
+  - conda-forge
   - defaults
 dependencies:
-  - python=3.9
+  - python>=3.10
+  - astropy
+  - scipy
+  - pybind11
   - pip
   - pip:
       - autograd
-      - peigen==0.0.9
-      - proxmin==0.6.12
-      - pybind11==2.13.6
-      
+      - peigen
+      - proxmin
+      - timm
+      - opencv-python

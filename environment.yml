@@ -4,7 +4,8 @@ channels:
   - defaults
 dependencies:
   - python>=3.10
-  - astropy
+  - numpy>=2.0
+  - astropy>=6.1.0
   - scipy
   - pybind11
   - pip
@@ -13,4 +14,3 @@ dependencies:
       - peigen
       - proxmin
       - timm
-      - opencv-python

@@ -27,8 +27,10 @@ jobs:
         sudo apt-get update
         sudo apt install libopenmpi-dev
         python -m pip install --upgrade pip
-        pip install . --no-build-isolation
-        pip install .[dev] --no-build-isolation
+        pip install 'git+https://github.com/pmelchior/scarlet.git' --no-build-isolation
+        pip install 'git+https://github.com/facebookresearch/detectron2.git' --no-build-isolation
+        pip install .
+        pip install .[dev]
     - name: Run unit tests with pytest
       run: |
         python -m pytest tests --cov=deepdisc --cov-report=xml

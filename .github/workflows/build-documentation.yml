@@ -32,8 +32,10 @@ jobs:
         sudo apt install libopenmpi-dev
         python -m pip install --upgrade pip
         if [ -f docs/requirements.txt ]; then pip install -r docs/requirements.txt; fi
-        pip install . --no-build-isolation
-        pip install .[dev] --no-build-isolation
+        pip install 'git+https://github.com/pmelchior/scarlet.git' --no-build-isolation
+        pip install 'git+https://github.com/facebookresearch/detectron2.git' --no-build-isolation
+        pip install .
+        pip install .[dev]
     - name: Install notebook requirements
       run: |
         sudo apt-get install pandoc

@@ -17,16 +17,14 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "numpy>2.0",
+    "numpy>=2.0",
     "scipy",
     "pandas",
-    "grpcio",
     "h5py",
-    "mpi4py",
     "astropy>=6.1.0",
     "opencv-python",
-    "detectron2@git+https://github.com/facebookresearch/detectron2.git",
-    "scarlet@git+https://github.com/pmelchior/scarlet.git",
+    "matplotlib",
+    "sep",
 ]
 
 [metadata]
@@ -50,17 +48,15 @@ dev = [
     "nbconvert", # Needed for pre-commit check to clear output from Python notebooks
     "nbsphinx", # Used to integrate Python notebooks into Sphinx documentation
     "ipython", # Also used in building notebooks into Sphinx
-    "matplotlib", # Used in sample notebook intro_notebook.ipynb
-    "numpy", # Used in sample notebook intro_notebook.ipynb
-    "sep", #Used in unit tests
+    "ipykernel"
 ]
 
 [build-system]
 requires = [
     "setuptools>=62", # Used to build and package the Python project
     "setuptools_scm>=6.2", # Gets release version from git. Makes it available programmatically
-    "pybind11>=2.10.0",
 ]
+
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]

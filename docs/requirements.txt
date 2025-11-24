@@ -5,9 +5,3 @@ nbsphinx
 ipython
 jupytext
 jupyter
-matplotlib
-numpy
-pybind11
-peigen
-mpi4py
-timm

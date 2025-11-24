@@ -15,12 +15,33 @@ DeepDISC is a deep learning framework for efficiently performing source detectio
 
 ## Installation:
 
-1) Create a conda environment, with python>=3.10.  You can use the environment.yml file provided and run  
+1) Create a conda environment with python>=3.10.  You can use the environment.yml file provided in this repo and run  
    `conda env create -f environment.yml`  
 
-or create an environment from scratch and install by hand the packages listed in the environment.yml file  
+   or create an environment from scratch and install by hand the packages listed in the environment.yml file
 
-2) Install deepdisc by cloning this repo and running
+2) Install [scarlet](https://pmelchior.github.io/scarlet/install.html) and [detectron2](https://detectron2.readthedocs.io/en/latest/tutorials/install.html).  The scarlet and detectron2 build dependencies are included in the environment.yml file, so you do not need to install them again.  Build both packages from the source. 
+   ```
+   git clone https://github.com/pmelchior/scarlet.git
+   cd scarlet
+   python setup.py install
+   ```
+
+   and 
+
+   ```
+   git clone https://github.com/facebookresearch/detectron2.git
+   python -m pip install -e detectron2
+   ```
+
+   You will likely need to include the `--no-build-isolation` flag when pip installing detectron2. This is due to newer versions of pip isolating package builds.  Detectron2 requires pytorch to build, so it must be seen in the current environment.  You may have other issues with buulding detectron2.  Check their installation documentation for some common errors and fixes.  
+
+
+3) Install deepdisc 
+
+   `pip install deepdisc`
+
+   alternatively, you can install the latest develpoment version by cloning this repo and running
    `pip install [e].` 
    [e] is optional and will install in editable mode.  Use if you are going to change the source code.
 

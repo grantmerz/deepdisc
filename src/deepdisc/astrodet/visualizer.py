@@ -401,7 +401,7 @@ class Visualizer:
         # default will be True as it preserves original behavior
         self.enable_color_jitter = enable_color_jitter
 
-    def draw_instance_predictions(self, predictions, alpha=0.5, lf=True, ls="-", boxf=False, custom_labels=None):
+    def draw_instance_predictions(self, predictions, alpha=0.5, lf=True, ls="-", boxf=False, draw_masks=True, custom_labels=None):
         """
         Draw instance-level prediction results on an image.
 
@@ -427,7 +427,7 @@ class Visualizer:
             labels = None
         keypoints = predictions.pred_keypoints if predictions.has("pred_keypoints") else None
 
-        if predictions.has("pred_masks"):
+        if predictions.has("pred_masks") and draw_masks:
             masks = np.asarray(predictions.pred_masks)
             masks = [GenericMask(x, self.output.height, self.output.width) for x in masks]
         else:
@@ -567,7 +567,7 @@ class Visualizer:
 
     draw_panoptic_seg_predictions = draw_panoptic_seg  # backward compatibility
 
-    def draw_dataset_dict(self, dic, lf=True, boxf=True, alpha=0.5, ls="-"):
+    def draw_dataset_dict(self, dic, lf=True, boxf=True, alpha=0.5, ls="-", draw_masks=True):
         """
         Draw annotations/segmentaions in Detectron2 Dataset format.
 
@@ -579,7 +579,7 @@ class Visualizer:
         """
         annos = dic.get("annotations", None)
         if annos:
-            if "segmentation" in annos[0]:
+            if "segmentation" in annos[0] and draw_masks:
                 masks = [x["segmentation"] for x in annos]
             else:
                 masks = None

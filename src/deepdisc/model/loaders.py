@@ -142,7 +142,8 @@ def return_test_loader(cfg, mapper):
     """
     batch_size = getattr(cfg.dataloader.test, 'total_batch_size', 1)
     num_workers = getattr(cfg.dataloader.test, 'num_workers', 0)
-    dataset = get_detection_dataset_dicts(cfg.DATASETS.TEST)
+    # Set filter_empty=False to allow images without annotations (for inference on unlabeled data)
+    dataset = get_detection_dataset_dicts(cfg.DATASETS.TEST, filter_empty=False)
     # loader w/ explicit params so we can bypass @configurable for detectron2's build_detection_test_loader()
     loader = data.build_detection_test_loader(
         dataset,

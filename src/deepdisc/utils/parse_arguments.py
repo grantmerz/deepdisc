@@ -94,7 +94,18 @@ Run on multiple machines:
         default="/home/shared/hsc/HSC/HSC_DR3/data/",
         help="directory with data",
     )
-
+    run_args.add_argument(
+        "--train-metadata",
+        type=str,
+        default="/home/shared/hsc/HSC/HSC_DR3/data/train.json",
+        help="path to training data",
+    )
+    run_args.add_argument(
+        "--eval-metadata",
+        type=str,
+        default="/home/shared/hsc/HSC/HSC_DR3/data/val.json",
+        help="path to eval data",
+    )
     run_args.add_argument("--eval-only", action="store_true", help="perform evaluation only")
     run_args.add_argument(
         "--from-scratch",

@@ -40,6 +40,10 @@ class AstroPredictor:
         
         if "model" in self.cfg: # This is when were using a LazyConfig-style model in the solo config
             self.model = instantiate(self.cfg.model)
+            if torch.cuda.is_available():
+                self.cfg.train.device = "cuda"
+            else:
+                self.cfg.train.device = "cpu"
             self.model.to(self.cfg.train.device)
             self.model = create_ddp_model(self.model)
             
@@ -48,6 +52,7 @@ class AstroPredictor:
 
         self.model.eval()
         if len(cfg.DATASETS.TEST):
+            print("Loading metadata for dataset:", cfg.DATASETS.TEST[0])
             self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
 
         checkpointer = DetectionCheckpointer(self.model)

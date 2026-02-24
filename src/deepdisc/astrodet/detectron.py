@@ -194,8 +194,8 @@ class LossEvalHook(HookBase):
                         n=5,
                     )
                 loss_batch, metrics_dict = self._get_loss(inputs)
-            losses.append(loss_batch)
-            losses_dicts.append(metrics_dict)
+                losses.append(loss_batch)
+                losses_dicts.append(metrics_dict)
         mean_loss = np.mean(losses)
         averaged_losses_dict ={}
         for d in losses_dicts:

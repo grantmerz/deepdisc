@@ -58,9 +58,17 @@ class DataMapper:
 
 class DictMapper(DataMapper):
     """Class that will map COCO dictionary data to the format necessary for the model"""
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, keypoint_hflip_indices=None, **kwargs):
+        # only needed if using keypoint-based data augmentation
+        # keypoint_hflip_indices: List of keypoint indices for horizontal flip 
+        #     (default: None to maintain backwards compatibility
+        #     For centroids, it'll just be [0] since our keypoints are just centroids for each object)
+        
         # Pass arguments to the parent function.
+        # so we set it to None by default and only require it if necessary
+        # it lets us define how keypoints should be permuted when we do a horizontal flip 
+        # (e.g. left eye should become right eye)
+        self.keypoint_hflip_indices = keypoint_hflip_indices
         super().__init__(*args, **kwargs)
 
     def map_data(self, dataset_dict):
@@ -90,7 +98,7 @@ class DictMapper(DataMapper):
         transform = augs(auginput)
         image = torch.from_numpy(auginput.image.copy().transpose(2, 0, 1))
         annos = [
-            utils.transform_instance_annotations(annotation, [transform], image.shape[1:])
+            utils.transform_instance_annotations(annotation, [transform], image.shape[1:], keypoint_hflip_indices=self.keypoint_hflip_indices)
             for annotation in dataset_dict.pop("annotations")
         ]
 

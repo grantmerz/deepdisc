@@ -247,7 +247,11 @@ def return_lazy_trainer(model, loader, optimizer, cfg, hooklist):
         trainer
     """
     trainer = LazyAstroTrainer(model, loader, optimizer, cfg)
-    trainer.register_hooks(hooklist)
+    if hooklist is not None:
+        trainer.register_hooks(hooklist)
+    else:
+        print("No hooks registered")
+        trainer.register_hooks([])
     return trainer
 
 

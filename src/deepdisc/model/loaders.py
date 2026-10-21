@@ -68,6 +68,10 @@ class DictMapper(DataMapper):
         # so we set it to None by default and only require it if necessary
         # it lets us define how keypoints should be permuted when we do a horizontal flip 
         # (e.g. left eye should become right eye)
+        # Pickling with multiprocessing can cause issues
+        # so this ensures the keypoint_hflip_indices is a list 
+        if keypoint_hflip_indices is not None:
+            keypoint_hflip_indices = list(keypoint_hflip_indices)
         self.keypoint_hflip_indices = keypoint_hflip_indices
         super().__init__(*args, **kwargs)
 
@@ -103,6 +107,7 @@ class DictMapper(DataMapper):
         ]
 
         instances = utils.annotations_to_instances(annos, image.shape[1:])
+        instances.gt_objid = torch.tensor([ann['obj_id'] for ann in annos], dtype=torch.int64)
         instances = utils.filter_empty_instances(instances)
 
         return {

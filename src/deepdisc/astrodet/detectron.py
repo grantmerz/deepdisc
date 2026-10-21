@@ -51,7 +51,7 @@ from torch.distributions.mixture_same_family import MixtureSameFamily
 from torch.distributions.normal import Normal
 from torch.nn import functional as F
 
-
+logger = setup_logger()
 def plot_stretch_Q(
     dataset_dicts,
     astro_metadata,
@@ -141,8 +141,6 @@ class SaveHook(HookBase):
             if is_final:
                 self.trainer.checkpointer.save(self.output_name)
 
-        
-#
 class LossEvalHook(HookBase):
 
     """
